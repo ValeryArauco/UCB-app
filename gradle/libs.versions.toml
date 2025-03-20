@@ -11,6 +11,9 @@ composeBom = "2024.04.01"
 sentry = "4.11.0"
 uiTextGoogleFonts = "1.7.8"
 hilt = "2.55"
+appcompat = "1.7.0"
+material = "1.12.0"
+jetbrainsKotlinJvm = "2.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -31,6 +34,8 @@ androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text
 hilt = { group = "com.google.dagger", name = "hilt-android", version.ref="hilt"}
 hilt-compiler = {group = "com.google.dagger", name = "hilt-compiler", version.ref="hilt"}
 hilt-test = { group = "com.google.dagger", name = "hilt-android-testing", version.ref="hilt"}
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -39,3 +44,5 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 sentry = { id = "io.sentry.android.gradle", version.ref = "sentry" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kapt = { id = "org.jetbrains.kotlin.kapt", version.ref="kotlin"}
+android-library = { id = "com.android.library", version.ref = "agp" }
+jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
