@@ -87,7 +87,7 @@ fun SigninPage(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "UCB",
+            text = stringResource(R.string.signin_title),
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 48.dp)
@@ -163,7 +163,7 @@ fun SigninPage(modifier: Modifier = Modifier) {
             )
         ) {
             Text(
-                text = "Sign In",
+                text = stringResource(R.string.signin_button),
                 color = Color.White
             )
         }
