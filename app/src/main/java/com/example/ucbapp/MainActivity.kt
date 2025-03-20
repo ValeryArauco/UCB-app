@@ -15,9 +15,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.compose.UcbappTheme
+import dagger.hilt.android.AndroidEntryPoint
 //import com.example.ucbapp.ui.theme.UcbappTheme
 import io.sentry.Sentry
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
