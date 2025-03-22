@@ -67,6 +67,9 @@ dependencies {
     kaptAndroidTest(libs.hilt.compiler)
     debugImplementation(libs.leakcanary.android)
 
+    implementation(libs.room.runtime)
+    kapt(libs.room.compiler)
+    implementation(libs.room.ktx)
 }
 
 kapt {
