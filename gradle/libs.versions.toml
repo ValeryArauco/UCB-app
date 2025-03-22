@@ -16,9 +16,12 @@ material = "1.12.0"
 jetbrainsKotlinJvm = "2.0.0"
 transition = "1.5.0"
 ksp = "1.9.20-1.0.14"
-
-
 room = "2.6.1"
+lifecycleViewmodelAndroid = "2.8.7"
+material3Android = "1.3.1"
+uiTextAndroid = "1.7.8"
+navigationCompose = "2.8.9"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -44,9 +47,24 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-transition = { group = "androidx.transition", name = "transition", version.ref = "transition" }
 leakcanary-android = "com.squareup.leakcanary:leakcanary-android:2.14"
 
+
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+
+room-rxjava2 = { module="androidx.room:room-rxjava2", version.ref="room"}
+room-rxjava3 = { module="androidx.room:room-rxjava3", version.ref="room"}
+room-guava = {module="androidx.room:room-guava", version.ref="room"}
+room-paging = { module="androidx.room:room-paging", version.ref="room"}
+
+room-testing = { module="androidx.room:room-testing", version.ref="room"}
+
+
+androidx-lifecycle-viewmodel-android = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-android", version.ref = "lifecycleViewmodelAndroid" }
+androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
+androidx-ui-text-android = { group = "androidx.compose.ui", name = "ui-text-android", version.ref = "uiTextAndroid" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -58,3 +76,6 @@ kapt = { id = "org.jetbrains.kotlin.kapt", version.ref="kotlin"}
 android-library = { id = "com.android.library", version.ref = "agp" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 ksp = {id = "com.google.devtools.ksp", version.ref="ksp"}
+
+[bundles]
+room = [ "room-runtime", "room-ktx", "room-rxjava2","room-rxjava3", "room-guava", "room-paging"]

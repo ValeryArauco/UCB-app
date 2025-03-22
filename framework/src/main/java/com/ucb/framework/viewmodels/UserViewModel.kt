@@ -1,9 +1,9 @@
-package com.example.ucbapp.presentation.viewmodels
+package com.uob.framework.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.ucbapp.data.local.UserDao
-import com.example.ucbapp.data.model.UserEntity
+import com.ucb.framework.persistence.DAOs.UserDao
+import com.ucb.framework.persistence.entities.UserEntity
 import kotlinx.coroutines.launch
 
 class UserViewModel(private val userDao: UserDao) : ViewModel() {

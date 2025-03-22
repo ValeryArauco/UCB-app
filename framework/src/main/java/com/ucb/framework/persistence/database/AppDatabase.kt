@@ -1,14 +1,13 @@
-package com.example.ucbapp.data.local
+package com.ucb.framework.persistence.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.ucbapp.data.model.UserEntity
 
-@Database(entities = [UserEntity::class], version = 1)
+@Database(entities = [com.ucb.framework.persistence.entities.UserEntity::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun userDao(): UserDao
+    abstract fun userDao(): com.ucb.framework.persistence.DAOs.UserDao
 
     companion object {
         @Volatile

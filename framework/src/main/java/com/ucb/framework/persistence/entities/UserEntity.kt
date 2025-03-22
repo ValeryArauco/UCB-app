@@ -1,4 +1,4 @@
-package com.example.ucbapp.data.model
+package com.ucb.framework.persistence.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
