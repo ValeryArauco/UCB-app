@@ -20,9 +20,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.compose.UcbappTheme
 import dagger.hilt.android.AndroidEntryPoint
-//import com.example.ucbapp.ui.theme.UcbappTheme
 import io.sentry.Sentry
 
 @AndroidEntryPoint
@@ -32,42 +35,137 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             UcbappTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//                    SigninPage(modifier = Modifier.padding(innerPadding))
-                      UserMenu(modifier = Modifier.padding(innerPadding))
-                }
+                val navController = rememberNavController()
+                AppNavGraph(navController = navController)
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        Text(
-            text = "Hello $name!"
-        )
-        Text(
-            text = "Texto de ejemplo",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Button(onClick = {
-            Sentry.captureException(
-                RuntimeException("This app uses Sentry! :)")
-            )
-        }) {
-            Text(text = "Break the world")
+fun AppNavGraph(navController: NavHostController) {
+    NavHost(
+        navController = navController,
+        startDestination = "userMenu"
+    ) {
+        composable("userMenu") {
+            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                //                    SigninPage(modifier = Modifier.padding(innerPadding))
+                UserMenu(
+                    navController = navController,
+                    modifier = Modifier.padding(innerPadding)
+                )
+            }
+        }
+        composable("notifications") {
+            NotificationsScreen()
+        }
+        composable("messages") {
+            MessagesScreen()
+        }
+        composable("login") {
+            LoginScreen()
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    UcbappTheme {
-        Greeting("Android")
+fun UserMenu(navController: NavHostController, modifier: Modifier = Modifier) {
+    var expanded by remember { mutableStateOf(false) }  // Controla si el menú está expandido
+    var isLightMode by remember { mutableStateOf(true) }  // Controla el modo claro/oscuro
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        // Botón para abrir el menú desplegable
+        IconButton(
+            onClick = { expanded = true },  // Abre el menú al hacer clic
+            modifier = Modifier.align(Alignment.TopEnd)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Menu,  // Ícono de menú
+                contentDescription = "Abrir menú"
+            )
+        }
+
+        // Menú desplegable
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },  // Cierra el menú al tocar fuera
+            modifier = Modifier.width(200.dp)
+        ) {
+            // Información del usuario
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Valery Fernanda Arauco Porrez",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "valery.arauco@ucb.edu.bo",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            }
+
+            // Opciones del menú
+            DropdownMenuItem(
+                text = { Text("Notificaciones") },
+                onClick = {
+                    expanded = false  // Cierra el menú
+                    navController.navigate("notifications")  // Navegar a notificaciones
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Mensajes") },
+                onClick = {
+                    expanded = false  // Cierra el menú
+                    navController.navigate("messages")  // Navegar a mensajes
+                }
+            )
+            DropdownMenuItem(
+                text = { Text(if (isLightMode) "Dark Mode" else "Light Mode") },
+                onClick = {
+                    expanded = false  // Cierra el menú
+                    isLightMode = !isLightMode  // Cambia entre modo claro y oscuro
+                    // Aquí puedes cambiar el tema de la aplicación
+                    println("Cambiar a ${if (isLightMode) "Light Mode" else "Dark Mode"}")
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Cerrar sesión") },
+                onClick = {
+                    expanded = false  // Cierra el menú
+                    navController.navigate("login") {  // Navegar a login
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
     }
+}
+
+@Composable
+fun NotificationsScreen() {
+    Text(text = "Pantalla de Notificaciones")
+}
+
+@Composable
+fun MessagesScreen() {
+    Text(text = "Pantalla de Mensajes")
+}
+
+@Composable
+fun LoginScreen() {
+    Text(text = "Pantalla de Inicio de Sesión")
 }
 
 @Composable
@@ -200,13 +298,31 @@ fun SigninPage(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun UserMenu(modifier: Modifier) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(text = "Bienvenido de nuevo")
-        Text(text = "Correo electrónico")
-        Text(text = "Contraseña")
-        Text(text = "Mis materias")
-        Text(text = "[1-2024] SIS-321 SEGURIDAD DE SISTEMAS [Par. 1]")
-        Text(text = "[1-2024] ANA-111 ANATOMÍA HUMANA [Par. 3 - A]")
+fun Greeting(name: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        Text(
+            text = "Hello $name!"
+        )
+        Text(
+            text = "Texto de ejemplo",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Button(onClick = {
+            Sentry.captureException(
+                RuntimeException("This app uses Sentry! :)")
+            )
+        }) {
+            Text(text = "Break the world")
+        }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
+    UcbappTheme {
+        Greeting("Android")
+    }
+}
+

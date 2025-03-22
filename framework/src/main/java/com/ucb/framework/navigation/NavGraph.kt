@@ -4,10 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.uob.framework.ui.UserMenu
-import com.uob.framework.ui.NotificationsScreen
-import com.uob.framework.ui.MessagesScreen
-import com.uob.framework.ui.LoginScreen
+import com.example.ucbapp.ui.LoginScreen
+import com.example.ucbapp.ui.MessagesScreen
+import com.example.ucbapp.ui.NotificationsScreen
+import com.example.ucbapp.ui.UserMenu
+
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {

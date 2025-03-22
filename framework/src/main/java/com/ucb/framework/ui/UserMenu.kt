@@ -1,4 +1,4 @@
-package com.ucb.framework.ui
+package com.example.ucbapp.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -11,35 +11,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.uob.framework.viewmodels.ThemeViewModel
 
 @Composable
-fun UserMenu(navController: NavController) {
-    var expanded by remember { mutableStateOf(false) }
-    var isLightMode by remember { mutableStateOf(true) }
-    val viewModel: ThemeViewModel = viewModel()
+fun UserMenu(navController: NavController, modifier: Modifier = Modifier) {
+    var expanded by remember { mutableStateOf(false) }  // Controla si el menú está expandido
+    var isLightMode by remember { mutableStateOf(true) }  // Controla el modo claro/oscuro
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // Botón para abrir el menú desplegable
         IconButton(
-            onClick = { expanded = true },
+            onClick = { expanded = true },  // Abre el menú al hacer clic
             modifier = Modifier.align(Alignment.TopEnd)
         ) {
             Icon(
-                imageVector = Icons.Default.Menu,
+                imageVector = Icons.Default.Menu,  // Ícono de menú
                 contentDescription = "Abrir menú"
             )
         }
 
+        // Menú desplegable
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
+            onDismissRequest = { expanded = false },  // Cierra el menú al tocar fuera
             modifier = Modifier.width(200.dp)
         ) {
+            // Información del usuario
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -57,33 +57,35 @@ fun UserMenu(navController: NavController) {
                 )
             }
 
+            // Opciones del menú
             DropdownMenuItem(
                 text = { Text("Notificaciones") },
                 onClick = {
-                    expanded = false
-                    navController.navigate("notifications")
+                    expanded = false  // Cierra el menú
+                    navController.navigate("notifications")  // Navegar a notificaciones
                 }
             )
             DropdownMenuItem(
                 text = { Text("Mensajes") },
                 onClick = {
-                    expanded = false
-                    navController.navigate("messages")
+                    expanded = false  // Cierra el menú
+                    navController.navigate("messages")  // Navegar a mensajes
                 }
             )
             DropdownMenuItem(
                 text = { Text(if (isLightMode) "Dark Mode" else "Light Mode") },
                 onClick = {
-                    expanded = false
-                    isLightMode = !isLightMode
-                    viewModel.toggleTheme(isLightMode)
+                    expanded = false  // Cierra el menú
+                    isLightMode = !isLightMode  // Cambia entre modo claro y oscuro
+                    // Aquí puedes cambiar el tema de la aplicación
+                    println("Cambiar a ${if (isLightMode) "Light Mode" else "Dark Mode"}")
                 }
             )
             DropdownMenuItem(
                 text = { Text("Cerrar sesión") },
                 onClick = {
-                    expanded = false
-                    navController.navigate("login") {
+                    expanded = false  // Cierra el menú
+                    navController.navigate("login") {  // Navegar a login
                         popUpTo(navController.graph.startDestinationId) {
                             inclusive = true
                         }
