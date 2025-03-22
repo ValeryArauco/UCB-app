@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.androidx.transition)
+    implementation(libs.room.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -69,7 +70,6 @@ dependencies {
 
     implementation(libs.room.runtime)
     kapt(libs.room.compiler)
-    implementation(libs.room.ktx)
 }
 
 kapt {
