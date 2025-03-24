@@ -123,7 +123,6 @@ fun SigninPage(modifier: Modifier = Modifier) {
                 focusedBorderColor = MaterialTheme.colorScheme.primary
             )
         )
-
         Text(
             text = "Contraseña",
             style = MaterialTheme.typography.bodyMedium,

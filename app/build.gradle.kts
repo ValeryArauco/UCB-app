@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.sentry)
     alias(libs.plugins.kapt)
     alias(libs.plugins.hilt)
+    id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
 }
 
 android {
@@ -71,4 +72,9 @@ dependencies {
 
 kapt {
     correctErrorTypes = true
+}
+
+ktlint{
+    android = true
+    verbose = true
 }
