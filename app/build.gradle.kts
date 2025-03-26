@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.room.ktx)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
+    implementation(project(":data"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -71,7 +72,15 @@ dependencies {
     debugImplementation(libs.leakcanary.android)
 
     implementation(libs.room.runtime)
-    kapt(libs.room.compiler)
+    kapt(libs.room.compiler) // Para que Room genere el código necesario
+    implementation(libs.room.ktx)
+    implementation (libs.androidx.core.ktx.v1120) // Versión actualizada
+
+//
+//    implementation ("androidx.appcompat:appcompat:1.5.0")
+//    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.5.0")
+//    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.0")
+//    implementation ("org.jetbrains.kotlin:kotlin-stdlib:1.8.10")
 }
 
 kapt {
