@@ -1,4 +1,4 @@
-package com.example.ucbapp
+package com.example.framework
 
 import org.junit.Test
 

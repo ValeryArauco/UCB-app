@@ -21,4 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "ucbapp"
 include(":app")
- 
+include(":framework")
+include(":data")
+include(":domain")
+include(":usecases")
