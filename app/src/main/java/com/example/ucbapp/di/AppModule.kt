@@ -21,7 +21,7 @@ object AppModule {
     @Provides
     @Singleton
     fun providerRetrofitBuilder(@ApplicationContext context: Context) : RetrofitBuilder {
-        return RetrofitBuilder
+        return RetrofitBuilder(context)
     }
 
     @Provides
