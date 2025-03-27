@@ -70,6 +70,7 @@ dependencies {
     androidTestImplementation(libs.hilt.test)
     kaptAndroidTest(libs.hilt.compiler)
     debugImplementation(libs.leakcanary.android)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     implementation(project(":usecases"))
     implementation(project(":domain"))

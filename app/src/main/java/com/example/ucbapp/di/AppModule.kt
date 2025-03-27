@@ -32,13 +32,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun gitRepository(remoteDataSource: ISubjectRemoteDataSource): SubjectRepository {
+    fun subjectRepository(remoteDataSource: ISubjectRemoteDataSource): SubjectRepository {
         return SubjectRepository(remoteDataSource)
     }
 
     @Provides
     @Singleton
-    fun provideGitUseCases(githubRepository: SubjectRepository): GetTeacherSubjects {
-        return GetTeacherSubjects(githubRepository)
+    fun provideGitUseCases(subjectRepository: SubjectRepository): GetTeacherSubjects {
+        return GetTeacherSubjects(subjectRepository)
     }
 }

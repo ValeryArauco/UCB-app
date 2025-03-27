@@ -4,7 +4,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 object RetrofitBuilder {
-    private const val BASE_URL = "https://firestore.googleapis.com/v1/projects/ucbapp-63925/databases/(default)/documents/"
+    private const val BASE_URL = "https://firestore.googleapis.com/v1/projects/ucbapp-63925/databases/(default)/documents"
 
     private fun getRetrofit(): Retrofit {
         return Retrofit.Builder()
