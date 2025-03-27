@@ -1,4 +1,10 @@
 package com.example.usecases
 
-class GetTeacherSubjects {
+import com.example.data.SubjectRepository
+import com.example.domain.Subject
+
+class GetTeacherSubjects(val subjectRepository: SubjectRepository) {
+    suspend fun invoke(subjectId: String) : Subject {
+        return subjectRepository.findbyId(subjectId)
+    }
 }

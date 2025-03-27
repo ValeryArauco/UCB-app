@@ -71,6 +71,10 @@ dependencies {
     kaptAndroidTest(libs.hilt.compiler)
     debugImplementation(libs.leakcanary.android)
 
+    implementation(project(":usecases"))
+    implementation(project(":domain"))
+    implementation(project(":data"))
+    implementation(project(":framework"))
 }
 
 kapt {

@@ -1,0 +1,44 @@
+package com.example.ucbapp.di
+
+import android.content.Context
+import com.example.data.SubjectRepository
+import com.example.data.subject.ISubjectRemoteDataSource
+import com.example.framework.service.RetrofitBuilder
+import com.example.framework.subject.SubjectRemoteDataSource
+import com.example.usecases.GetTeacherSubjects
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import jakarta.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object AppModule {
+
+
+    @Provides
+    @Singleton
+    fun providerRetrofitBuilder(@ApplicationContext context: Context) : RetrofitBuilder {
+        return RetrofitBuilder
+    }
+
+    @Provides
+    @Singleton
+    fun subjectRemoteDataSource(retrofiService: RetrofitBuilder): ISubjectRemoteDataSource {
+        return SubjectRemoteDataSource(retrofiService)
+    }
+
+    @Provides
+    @Singleton
+    fun gitRepository(remoteDataSource: ISubjectRemoteDataSource): SubjectRepository {
+        return SubjectRepository(remoteDataSource)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGitUseCases(githubRepository: SubjectRepository): GetTeacherSubjects {
+        return GetTeacherSubjects(githubRepository)
+    }
+}
