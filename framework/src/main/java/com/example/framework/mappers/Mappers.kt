@@ -1,17 +1,17 @@
 package com.example.framework.mappers
-import com.example.domain.Subject
-import com.example.framework.dto.SubjectResponseDto
+import com.example.domain.Materia
+import com.example.framework.dto.MateriaResponseDto
 
-fun SubjectResponseDto.toModel(): Subject {
-        return Subject(
+fun MateriaResponseDto.toModel(): Materia {
+        return Materia(
         id= id,
         name= description,
         image= image,
-        teacherId= teacher,
+                docenteId = teacher,
         elementosTotales= elemTotal,
         recTotales= recTotales,
         recTomados= recTomados,
         elemEvaluados= elemEvaluados,
-        elemCompletes= elemComp
+                elemCompletados= elemComp
     )
 }

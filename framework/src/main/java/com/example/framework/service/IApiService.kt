@@ -1,12 +1,13 @@
 package com.example.framework.service
 
-import com.example.framework.dto.SubjectResponseDto
+import com.example.framework.dto.MateriaResponseDto
+import retrofit2.Response
 import retrofit2.http.GET
-import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface IApiService {
 
-    @GET("/materia/{subjectId}")
-    suspend fun getInfoMateria(@Path("subjectId") subjectId: String): SubjectResponseDto
+    @GET("/materia")
+    suspend fun fetchMaterias(): Response<MateriaResponseDto>
 
 }

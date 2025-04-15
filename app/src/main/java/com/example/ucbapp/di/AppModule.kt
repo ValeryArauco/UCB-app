@@ -2,9 +2,9 @@ package com.example.ucbapp.di
 
 import android.content.Context
 import com.example.data.SubjectRepository
-import com.example.data.subject.ISubjectRemoteDataSource
+import com.example.data.materia.IMateriaRemoteDataSource
 import com.example.framework.service.RetrofitBuilder
-import com.example.framework.subject.SubjectRemoteDataSource
+import com.example.framework.materia.MateriaRemoteDataSource
 import com.example.usecases.GetTeacherSubjects
 import dagger.Module
 import dagger.Provides
@@ -26,13 +26,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun subjectRemoteDataSource(retrofiService: RetrofitBuilder): ISubjectRemoteDataSource {
-        return SubjectRemoteDataSource(retrofiService)
+    fun subjectRemoteDataSource(retrofiService: RetrofitBuilder): IMateriaRemoteDataSource {
+        return MateriaRemoteDataSource(retrofiService)
     }
 
     @Provides
     @Singleton
-    fun subjectRepository(remoteDataSource: ISubjectRemoteDataSource): SubjectRepository {
+    fun subjectRepository(remoteDataSource: IMateriaRemoteDataSource): SubjectRepository {
         return SubjectRepository(remoteDataSource)
     }
 

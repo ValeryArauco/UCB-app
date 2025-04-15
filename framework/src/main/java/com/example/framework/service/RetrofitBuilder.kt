@@ -21,6 +21,6 @@ class RetrofitBuilder(
     }
     val apiService: IApiService = getRetrofit().create(IApiService::class.java)
     companion object {
-        private const val BASE_URL = "https://api.github.com"
+        private const val BASE_URL = "https://firestore.googleapis.com/v1/projects/ucbapp-63925/databases/(default)/documents"
     }
 }

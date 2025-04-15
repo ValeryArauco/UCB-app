@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 android {
@@ -71,6 +72,7 @@ dependencies {
     kaptAndroidTest(libs.hilt.compiler)
     debugImplementation(libs.leakcanary.android)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(project(":usecases"))
     implementation(project(":domain"))
