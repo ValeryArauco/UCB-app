@@ -1,4 +1,4 @@
-package com.example.compose
+package com.example.ucbapp.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val primaryLight = Color(0xFF34618E)
@@ -246,4 +246,3 @@ val customColor1DarkHighContrast = Color(0xFFDCF4FF)
 val onCustomColor1DarkHighContrast = Color(0xFF000000)
 val customColor1ContainerDarkHighContrast = Color(0xFF85CCE9)
 val onCustomColor1ContainerDarkHighContrast = Color(0xFF000D13)
-

@@ -9,4 +9,12 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.kotlinSerialization) apply false
+    alias(libs.plugins.detekt)
+}
+subprojects {
+    apply(plugin = "io.gitlab.arturbosch.detekt")
+    detekt {
+        parallel = true
+        config.setFrom(files("${project.rootDir}/detekt.yml"))
+    }
 }

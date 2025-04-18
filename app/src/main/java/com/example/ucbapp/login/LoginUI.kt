@@ -39,10 +39,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.ucbapp.R
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ucbapp.R
 
-
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun LoginUI(modifier: Modifier = Modifier) {
     var userSignIn by remember { mutableStateOf("") }
@@ -54,7 +54,7 @@ fun LoginUI(modifier: Modifier = Modifier) {
 
     val loginState by viewModel.loginState.collectAsState(LoginViewModel.LoginState.Init)
 
-    when ( loginState) {
+    when (loginState) {
         is LoginViewModel.LoginState.Init -> {
             Toast.makeText(context, "Init", Toast.LENGTH_LONG).show()
         }
@@ -66,68 +66,74 @@ fun LoginUI(modifier: Modifier = Modifier) {
         }
         is LoginViewModel.LoginState.Loading -> {
             Toast.makeText(context, "Loading....", Toast.LENGTH_LONG).show()
-
         }
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = stringResource(R.string.signin_title),
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 48.dp)
+            modifier = Modifier.padding(bottom = 48.dp),
         )
 
         Text(
             text = "Bienvenido de nuevo",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .align(Alignment.Start)
-                .padding(bottom = 24.dp)
+            modifier =
+                Modifier
+                    .align(Alignment.Start)
+                    .padding(bottom = 24.dp),
         )
 
         Text(
             text = "Correo electrónico",
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier
-                .align(Alignment.Start)
-                .padding(bottom = 8.dp)
+            modifier =
+                Modifier
+                    .align(Alignment.Start)
+                    .padding(bottom = 8.dp),
         )
 
         OutlinedTextField(
             value = userSignIn,
             onValueChange = { userSignIn = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
             shape = RoundedCornerShape(24.dp),
             singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color.Gray,
-                focusedBorderColor = MaterialTheme.colorScheme.primary
-            )
+            colors =
+                OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.Gray,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                ),
         )
         Text(
             text = "Contraseña",
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier
-                .align(Alignment.Start)
-                .padding(bottom = 8.dp)
+            modifier =
+                Modifier
+                    .align(Alignment.Start)
+                    .padding(bottom = 8.dp),
         )
 
         OutlinedTextField(
             value = passwordSignIn,
             onValueChange = { passwordSignIn = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
             shape = RoundedCornerShape(24.dp),
             singleLine = true,
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -136,25 +142,28 @@ fun LoginUI(modifier: Modifier = Modifier) {
                     Text(text = if (passwordVisible) "🔒" else "🔓")
                 }
             },
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color.Gray,
-                focusedBorderColor = MaterialTheme.colorScheme.primary
-            )
+            colors =
+                OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.Gray,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                ),
         )
 
         Button(
             onClick = { /*TODO*/ },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
             shape = RoundedCornerShape(24.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF004787)
-            )
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF004787),
+                ),
         ) {
             Text(
                 text = stringResource(R.string.signin_button),
-                color = Color.White
+                color = Color.White,
             )
         }
 
@@ -162,28 +171,30 @@ fun LoginUI(modifier: Modifier = Modifier) {
             text = "Or sign in with",
             modifier = Modifier.padding(vertical = 16.dp),
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray
+            color = Color.Gray,
         )
 
         OutlinedButton(
             onClick = { viewModel.doLogin(userSignIn, passwordSignIn) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
             shape = RoundedCornerShape(24.dp),
             border = BorderStroke(1.dp, Color.Gray),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = Color.Black
-            )
+            colors =
+                ButtonDefaults.outlinedButtonColors(
+                    contentColor = Color.Black,
+                ),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
             ) {
                 Icon(
                     imageVector = Icons.Default.Email,
                     contentDescription = "Google icon",
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = "Continue with Google")
@@ -191,5 +202,3 @@ fun LoginUI(modifier: Modifier = Modifier) {
         }
     }
 }
-
-
