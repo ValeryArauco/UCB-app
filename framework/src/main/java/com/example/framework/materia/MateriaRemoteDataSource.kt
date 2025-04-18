@@ -7,10 +7,10 @@ import com.example.framework.mappers.toModel
 import com.example.framework.service.RetrofitBuilder
 
 class MateriaRemoteDataSource(val retrofitService: RetrofitBuilder): IMateriaRemoteDataSource{
-    override suspend fun fetchMaterias(): NetworkResult<List<Materia>>{
-        val response = retrofitService.apiService.fetchMaterias()
+    override suspend fun getMaterias(): NetworkResult<List<Materia>>{
+        val response = retrofitService.apiService.getMaterias()
         if (response.isSuccessful) {
-            return NetworkResult.Success(response.body()!!.results.map { it.toModel() })
+            return NetworkResult.Success(response.body()!!.documents.map { it.toModel() })
         } else {
             return NetworkResult.Error(response.message())
         }

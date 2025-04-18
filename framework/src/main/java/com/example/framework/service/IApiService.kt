@@ -8,6 +8,6 @@ import retrofit2.http.Query
 interface IApiService {
 
     @GET("/materia")
-    suspend fun fetchMaterias(): Response<MateriaResponseDto>
+    suspend fun getMaterias(): Response<MateriaResponseDto>
 
 }

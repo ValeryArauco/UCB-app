@@ -1,11 +1,11 @@
 package com.example.ucbapp.di
 
 import android.content.Context
-import com.example.data.SubjectRepository
+import com.example.data.MateriaRepository
 import com.example.data.materia.IMateriaRemoteDataSource
 import com.example.framework.service.RetrofitBuilder
 import com.example.framework.materia.MateriaRemoteDataSource
-import com.example.usecases.GetTeacherSubjects
+import com.example.usecases.GetMaterias
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,19 +26,19 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun subjectRemoteDataSource(retrofiService: RetrofitBuilder): IMateriaRemoteDataSource {
+    fun materiaRemoteDataSource(retrofiService: RetrofitBuilder): IMateriaRemoteDataSource {
         return MateriaRemoteDataSource(retrofiService)
     }
 
     @Provides
     @Singleton
-    fun subjectRepository(remoteDataSource: IMateriaRemoteDataSource): SubjectRepository {
-        return SubjectRepository(remoteDataSource)
+    fun materiaRepository(remoteDataSource: IMateriaRemoteDataSource): MateriaRepository {
+        return MateriaRepository(remoteDataSource)
     }
 
     @Provides
     @Singleton
-    fun provideGitUseCases(subjectRepository: SubjectRepository): GetTeacherSubjects {
-        return GetTeacherSubjects(subjectRepository)
+    fun provideGetMaterias(subjectRepository: MateriaRepository): GetMaterias {
+        return GetMaterias(subjectRepository)
     }
 }
