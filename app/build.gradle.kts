@@ -31,7 +31,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -74,6 +74,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.kotlinx.serialization.json)
 
+    // navigation
+    implementation(libs.navigation.compose)
+    implementation(libs.hilt.navigation)
+
     implementation(project(":usecases"))
     implementation(project(":domain"))
     implementation(project(":data"))
@@ -83,7 +87,6 @@ dependencies {
 kapt {
     correctErrorTypes = true
 }
-
 
 ktlint {
     android = true
@@ -106,6 +109,6 @@ ktlint {
     }
 }
 
-detekt{
+detekt {
     parallel = true
 }
