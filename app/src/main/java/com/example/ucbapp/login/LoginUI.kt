@@ -41,6 +41,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ucbapp.R
+import com.example.ucbapp.service.InternetConnection.Companion.isConnected
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
@@ -150,7 +151,11 @@ fun LoginUI(modifier: Modifier = Modifier) {
         )
 
         Button(
-            onClick = { /*TODO*/ },
+            onClick = {
+                if (!isConnected(context)) {
+                    Toast.makeText(context, "No tiene acceso a internet", Toast.LENGTH_LONG).show()
+                }
+            },
             modifier =
                 Modifier
                     .fillMaxWidth()
