@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.ucbapp.login.LoginUI
+import com.example.ucbapp.materias.MateriasUI
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
@@ -22,7 +23,14 @@ fun AppNavigation() {
         popExitTransition = { ExitTransition.None },
     ) {
         composable(Screens.LoginScreen.route) {
-            LoginUI()
+            LoginUI(
+                onSuccess = {
+                    navController.navigate(Screens.MateriasScreen.route)
+                },
+            )
+        }
+        composable(Screens.MateriasScreen.route) {
+            MateriasUI()
         }
     }
 }

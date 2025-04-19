@@ -45,7 +45,10 @@ import com.example.ucbapp.service.InternetConnection.Companion.isConnected
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun LoginUI(modifier: Modifier = Modifier) {
+fun LoginUI(
+    onSuccess: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var userSignIn by remember { mutableStateOf("") }
     var passwordSignIn by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -64,6 +67,7 @@ fun LoginUI(modifier: Modifier = Modifier) {
         }
         is LoginViewModel.LoginState.Successful -> {
             Toast.makeText(context, "Successful", Toast.LENGTH_LONG).show()
+            onSuccess()
         }
         is LoginViewModel.LoginState.Loading -> {
             Toast.makeText(context, "Loading....", Toast.LENGTH_LONG).show()
@@ -155,6 +159,7 @@ fun LoginUI(modifier: Modifier = Modifier) {
                 if (!isConnected(context)) {
                     Toast.makeText(context, "No tiene acceso a internet", Toast.LENGTH_LONG).show()
                 }
+                viewModel.doLogin(userSignIn, passwordSignIn)
             },
             modifier =
                 Modifier
@@ -180,7 +185,7 @@ fun LoginUI(modifier: Modifier = Modifier) {
         )
 
         OutlinedButton(
-            onClick = { viewModel.doLogin(userSignIn, passwordSignIn) },
+            onClick = { },
             modifier =
                 Modifier
                     .fillMaxWidth()
