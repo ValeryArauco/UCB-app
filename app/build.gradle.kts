@@ -73,6 +73,7 @@ dependencies {
     debugImplementation(libs.leakcanary.android)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.coil)
 
     // navigation
     implementation(libs.navigation.compose)
