@@ -1,8 +1,16 @@
 package com.example.usecases
 
-class DoLogin {
+import com.example.data.MateriaRepository
+import kotlinx.coroutines.delay
+
+class DoLogin(
+    val materiaRepository: MateriaRepository,
+) {
     suspend fun invoke(
         userName: String,
         password: String,
-    ): Boolean = true
+    ): Result<Unit> {
+        delay(1)
+        return return Result.success(Unit)
+    }
 }

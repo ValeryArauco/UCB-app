@@ -8,12 +8,11 @@ data class MateriaDto(
     @Json(name = "name")
     val id: String,
     @Json(name = "fields")
-    val fields: Fields
+    val fields: Fields,
 ) {
-
     @JsonClass(generateAdapter = true)
     data class Fields(
-        @Json(name = "elementosCompletados")
+        @Json(name = "elemComp")
         val elemComp: FirestoreInt,
         @Json(name = "elemEvaluados")
         val elemEvaluados: FirestoreInt,
@@ -28,11 +27,21 @@ data class MateriaDto(
         @Json(name = "elemTotal")
         val elemTotal: FirestoreInt,
         @Json(name = "teacher")
-        val teacher: FirestoreReference
+        val teacher: FirestoreReference,
     )
 }
 
+@JsonClass(generateAdapter = true)
+data class FirestoreInt(
+    @Json(name = "integerValue") val value: Int,
+)
 
-data class FirestoreInt(@Json(name = "integerValue") val value: Int)
-data class FirestoreString(@Json(name = "stringValue") val value: String)
-data class FirestoreReference(@Json(name = "referenceValue") val value: String)
+@JsonClass(generateAdapter = true)
+data class FirestoreString(
+    @Json(name = "stringValue") val value: String,
+)
+
+@JsonClass(generateAdapter = true)
+data class FirestoreReference(
+    @Json(name = "referenceValue") val value: String,
+)

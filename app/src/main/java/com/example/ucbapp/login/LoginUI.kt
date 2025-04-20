@@ -39,34 +39,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ucbapp.R
 import com.example.ucbapp.service.InternetConnection.Companion.isConnected
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun LoginUI(
-    onSuccess: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun LoginUI(onSuccess: () -> Unit) {
     var userSignIn by remember { mutableStateOf("") }
     var passwordSignIn by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
     var context = LocalContext.current
-    val viewModel: LoginViewModel = viewModel()
+    val viewModel: LoginViewModel = hiltViewModel()
 
     val loginState by viewModel.loginState.collectAsState(LoginViewModel.LoginState.Init)
 
     when (loginState) {
         is LoginViewModel.LoginState.Init -> {
-            Toast.makeText(context, "Init", Toast.LENGTH_LONG).show()
+            // Toast.makeText(context, "Init", Toast.LENGTH_LONG).show()
         }
         is LoginViewModel.LoginState.Error -> {
             Toast.makeText(context, (loginState as LoginViewModel.LoginState.Error).message, Toast.LENGTH_LONG).show()
         }
         is LoginViewModel.LoginState.Successful -> {
-            Toast.makeText(context, "Successful", Toast.LENGTH_LONG).show()
+            // Toast.makeText(context, "Successful", Toast.LENGTH_LONG).show()
             onSuccess()
         }
         is LoginViewModel.LoginState.Loading -> {

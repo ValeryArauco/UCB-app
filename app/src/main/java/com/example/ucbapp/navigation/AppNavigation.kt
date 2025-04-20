@@ -8,6 +8,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.ucbapp.login.LoginUI
 import com.example.ucbapp.materias.MateriasUI
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.net.URLEncoder
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
@@ -30,7 +33,11 @@ fun AppNavigation() {
             )
         }
         composable(Screens.MateriasScreen.route) {
-            MateriasUI()
+            MateriasUI(onSuccess = { materia ->
+                val movieJson = Json.encodeToString(materia)
+                val encodeMovieJson = URLEncoder.encode(movieJson, "UTF-8")
+                // navController.navigate("${Screens.MovieDetailScreen.route}/$encodeMovieJson")
+            })
         }
     }
 }
