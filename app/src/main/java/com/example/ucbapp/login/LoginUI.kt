@@ -166,7 +166,7 @@ fun LoginUI(onSuccess: () -> Unit) {
             shape = RoundedCornerShape(24.dp),
             colors =
                 ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF004787),
+                    containerColor = MaterialTheme.colorScheme.primary,
                 ),
         ) {
             Text(

@@ -6,4 +6,6 @@ sealed class Screens(
     object LoginScreen : Screens("login")
 
     object MateriasScreen : Screens("misMaterias")
+
+    object MateriaDetailScreen : Screens("materiaDetail")
 }
