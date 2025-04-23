@@ -8,4 +8,8 @@ sealed class Screens(
     object MateriasScreen : Screens("misMaterias")
 
     object MateriaDetailScreen : Screens("materiaDetail")
+
+    object NotificationsScreen : Screens("notifications")
+
+    object PerfilScreen : Screens("perfil")
 }
