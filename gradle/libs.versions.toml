@@ -9,6 +9,7 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.1"
 composeBom = "2024.09.02"
+playServicesAuth = "21.3.0"
 sentry = "4.11.0"
 uiTextGoogleFonts = "1.7.8"
 hilt = "2.55"
@@ -26,6 +27,14 @@ kotlinx-serialization = "1.7.3"
 navigation = "2.8.3"
 hiltNavViewModel = "1.1.0"
 kotlinxCoroutinesCore = "1.7.3"
+googleGmsGoogleServices = "4.4.2"
+firebaseMessaging = "24.1.1"
+firebaseDatabase = "21.0.0"
+datastore = "1.0.0"
+firebaseAuth = "23.2.0"
+credentials = "1.5.0"
+credentialsPlayServicesAuth = "1.5.0"
+googleid = "1.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,6 +61,7 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-transition = { group = "androidx.transition", name = "transition", version.ref = "transition" }
 leakcanary-android = "com.squareup.leakcanary:leakcanary-android:2.14"
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref= "retrofit"}
 moshi = { group = "com.squareup.moshi", name = "moshi", version.ref= "moshi"}
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
@@ -64,6 +74,13 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation"}
 hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref="hiltNavViewModel"}
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
+firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
+datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
+androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentialsPlayServicesAuth" }
+googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -78,3 +95,4 @@ ktlint= {id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint"}
 detekt =  {id = "io.gitlab.arturbosch.detekt", version.ref = "detekt"}
 ksp = { id = "com.google.devtools.ksp", version.ref="ksp"}
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
+google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }

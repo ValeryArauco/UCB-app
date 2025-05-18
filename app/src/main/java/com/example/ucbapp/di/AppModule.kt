@@ -2,11 +2,15 @@ package com.example.ucbapp.di
 
 import android.content.Context
 import com.example.data.MateriaRepository
+import com.example.data.PushNotificationRepository
 import com.example.data.materia.IMateriaRemoteDataSource
+import com.example.data.push.IPushDataSource
 import com.example.framework.materia.MateriaRemoteDataSource
+import com.example.framework.push.FirebaseNotificationDataSource
 import com.example.framework.service.RetrofitBuilder
 import com.example.usecases.DoLogin
 import com.example.usecases.GetMaterias
+import com.example.usecases.ObtainToken
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -38,4 +42,22 @@ object AppModule {
     @Provides
     @Singleton
     fun provideLogin(materiaRepository: MateriaRepository): DoLogin = DoLogin(materiaRepository)
+
+    @Provides
+    @Singleton
+    fun provideObtainToken( pushNotificationRepository: PushNotificationRepository): ObtainToken {
+        return ObtainToken(pushNotificationRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun providePushNotificationRepository( pushDataSource: IPushDataSource): PushNotificationRepository {
+        return PushNotificationRepository(pushDataSource)
+    }
+
+    @Provides
+    @Singleton
+    fun provideIPushDataSource(): IPushDataSource {
+        return FirebaseNotificationDataSource()
+    }
 }

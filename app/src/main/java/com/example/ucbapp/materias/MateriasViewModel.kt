@@ -6,6 +6,7 @@ import com.example.data.NetworkResult
 import com.example.domain.Materia
 import com.example.usecases.GetMaterias
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -34,7 +35,7 @@ class MateriasViewModel
 
         fun loadMaterias() {
             _uiState.value = MateriasUIState.Loading
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.IO) {
                 val response = getMaterias.invoke()
 
                 when (val result = response) {

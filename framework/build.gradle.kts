@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -34,7 +35,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -48,6 +48,9 @@ dependencies {
     ksp(libs.moshi.ksp)
     debugImplementation(libs.chucker)
     releaseImplementation(libs.chucker.no.op)
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.database)
+    implementation(libs.datastore)
 
     implementation(project(":data"))
     implementation(project(":domain"))

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "787541450450",
+    "project_id": "ucb-app-eacc2",
+    "storage_bucket": "ucb-app-eacc2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:787541450450:android:d6eb2ee503913d59edd70b",
+        "android_client_info": {
+          "package_name": "com.example.ucbapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "787541450450-ai93o8n3m4cqla7lb39vsquuu1005mvb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ucbapp",
+            "certificate_hash": "b7f77c415c8ccd651d7bd73a56dda6ccb96062b9"
+          }
+        },
+        {
+          "client_id": "787541450450-5ivsvt6ph3ebnotnifk1h9ult6p7d0qt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLsC8pe_cMTv6W86UKLqR6Tysvbf-Hje4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "787541450450-5ivsvt6ph3ebnotnifk1h9ult6p7d0qt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

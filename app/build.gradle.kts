@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -59,6 +60,13 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.androidx.transition)
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.database)
+    implementation(libs.firebase.auth)
+
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -78,6 +86,8 @@ dependencies {
     // navigation
     implementation(libs.navigation.compose)
     implementation(libs.hilt.navigation)
+
+    implementation(libs.play.services.auth)
 
     implementation(project(":usecases"))
     implementation(project(":domain"))
