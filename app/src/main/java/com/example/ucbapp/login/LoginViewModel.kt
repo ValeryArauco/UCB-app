@@ -81,9 +81,6 @@ class LoginViewModel
                 _loginState.value = LoginState.Error(e.message ?: "Error desconocido")
             }
         }
-
-        fun resetState() {
-        }
     }
 
 class UserRepositoryImpl
