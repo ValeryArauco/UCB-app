@@ -7,5 +7,5 @@ import com.example.domain.Materia
 class GetMaterias(
     val materiaRepository: MateriaRepository,
 ) {
-    suspend fun invoke(): NetworkResult<List<Materia>> = materiaRepository.getMaterias()
+    suspend fun invoke(email: String): NetworkResult<List<Materia>> = materiaRepository.fetchMateriasByDocente(email)
 }

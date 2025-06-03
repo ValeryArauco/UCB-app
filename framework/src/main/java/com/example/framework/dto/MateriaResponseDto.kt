@@ -5,6 +5,6 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 class MateriaResponseDto(
-    @Json(name = "documents")
-    val documents: List<MateriaDto>,
+    @Json(name = "data")
+    val data: List<MateriaDto>,
 )

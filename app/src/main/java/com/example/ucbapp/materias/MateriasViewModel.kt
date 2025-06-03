@@ -36,7 +36,7 @@ class MateriasViewModel
         fun loadMaterias() {
             _uiState.value = MateriasUIState.Loading
             viewModelScope.launch(Dispatchers.IO) {
-                val response = getMaterias.invoke()
+                val response = getMaterias.invoke("valery.arauco@ucb.edu.bo")
 
                 when (val result = response) {
                     is NetworkResult.Error -> {

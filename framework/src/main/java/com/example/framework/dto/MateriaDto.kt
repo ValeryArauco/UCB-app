@@ -5,43 +5,30 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class MateriaDto(
-    @Json(name = "name")
+    @Json(name = "id")
     val id: String,
-    @Json(name = "fields")
-    val fields: Fields,
-) {
-    @JsonClass(generateAdapter = true)
-    data class Fields(
-        @Json(name = "elemComp")
-        val elemComp: FirestoreInt,
-        @Json(name = "elemEvaluados")
-        val elemEvaluados: FirestoreInt,
-        @Json(name = "image")
-        val image: FirestoreString,
-        @Json(name = "recTotales")
-        val recTotales: FirestoreInt,
-        @Json(name = "recTomados")
-        val recTomados: FirestoreInt,
-        @Json(name = "description")
-        val description: FirestoreString,
-        @Json(name = "elemTotal")
-        val elemTotal: FirestoreInt,
-        @Json(name = "teacher")
-        val teacher: FirestoreReference,
-    )
-}
-
-@JsonClass(generateAdapter = true)
-data class FirestoreInt(
-    @Json(name = "integerValue") val value: Int,
-)
-
-@JsonClass(generateAdapter = true)
-data class FirestoreString(
-    @Json(name = "stringValue") val value: String,
-)
-
-@JsonClass(generateAdapter = true)
-data class FirestoreReference(
-    @Json(name = "referenceValue") val value: String,
+    @Json(name = "name")
+    val name: String,
+    @Json(name = "image")
+    val image: String,
+    @Json(name = "docente_id")
+    val docenteId: Int,
+    @Json(name = "paralelo")
+    val paralelo: String,
+    @Json(name = "elementos_totales")
+    val elementosTotales: Int,
+    @Json(name = "rec_totales")
+    val recTotales: Int,
+    @Json(name = "rec_tomados")
+    val recTomados: Int,
+    @Json(name = "elem_evaluados")
+    val elemEvaluados: Int,
+    @Json(name = "elem_completados")
+    val elemCompletados: Int,
+    @Json(name = "sigla")
+    val sigla: String,
+    @Json(name = "gestion")
+    val gestion: String,
+    @Json(name = "vigente")
+    val vigente: Boolean,
 )

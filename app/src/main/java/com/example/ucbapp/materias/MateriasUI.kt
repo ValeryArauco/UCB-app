@@ -5,40 +5,65 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.domain.Materia
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun MateriasUI(
@@ -49,25 +74,51 @@ fun MateriasUI(
         materiasViewModel.loadMaterias()
     }
     val materiasState by materiasViewModel.uiState.collectAsState()
+    var searchText by remember { mutableStateOf("") }
+    var selectedFilter by remember { mutableStateOf(FilterType.IN_PROGRESS) }
 
-    Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .background(Color(0xFFF2F2F2)),
-    ) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color(0xFFF8F9FA),
+    ) { paddingValues ->
         Column(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(paddingValues),
         ) {
-            Text(
-                text = "Mis materias",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp),
-            )
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 2.dp,
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                ) {
+                    Text(
+                        text = "Mis Materias",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    SearchBar(
+                        searchText = searchText,
+                        onSearchTextChange = { searchText = it },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+
+                    FilterChips(
+                        selectedFilter = selectedFilter,
+                        onFilterSelected = { selectedFilter = it },
+                    )
+                }
+            }
 
             when (val ui = materiasState) {
                 is MateriasViewModel.MateriasUIState.Loading -> {
@@ -75,29 +126,234 @@ fun MateriasUI(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        CircularProgressIndicator()
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Cargando materias...",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
                 is MateriasViewModel.MateriasUIState.Loaded -> {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        items(ui.materias) { materia ->
-                            MateriaCard(materia = materia, onClick = { onSuccess(materia) })
+                    val filteredMaterias = filterMaterias(ui.materias, searchText, selectedFilter)
+
+                    if (filteredMaterias.isEmpty()) {
+                        EmptyStateView(
+                            searchText = searchText,
+                            selectedFilter = selectedFilter,
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            items(filteredMaterias) { materia ->
+                                MateriaCard(
+                                    materia = materia,
+                                    onClick = { onSuccess(materia) },
+                                )
+                            }
                         }
                     }
                 }
                 is MateriasViewModel.MateriasUIState.Error -> {
-                    val errorMessage = (materiasState as MateriasViewModel.MateriasUIState.Error).message
                     ErrorView(
-                        message = errorMessage,
-                        onRetry = { },
+                        message = ui.message,
+                        onRetry = { materiasViewModel.loadMaterias() },
                     )
                 }
             }
         }
     }
 }
+
+@Composable
+fun SearchBar(
+    searchText: String,
+    onSearchTextChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = searchText,
+        onValueChange = onSearchTextChange,
+        modifier = modifier,
+        placeholder = {
+            Text(
+                text = "Buscar materias...",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Buscar",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        trailingIcon = {
+            if (searchText.isNotEmpty()) {
+                IconButton(
+                    onClick = { onSearchTextChange("") },
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Limpiar",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
+        shape = RoundedCornerShape(12.dp),
+        colors =
+            OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            ),
+        singleLine = true,
+    )
+}
+
+enum class FilterType(
+    val displayName: String,
+) {
+    IN_PROGRESS("En Progreso"),
+    COMPLETED("Pasadas"),
+    ALL("Todas"),
+}
+
+@Composable
+fun FilterChips(
+    selectedFilter: FilterType,
+    onFilterSelected: (FilterType) -> Unit,
+) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = 4.dp),
+    ) {
+        items(FilterType.entries) { filter ->
+            FilterChip(
+                onClick = { onFilterSelected(filter) },
+                label = {
+                    Text(
+                        text = filter.displayName,
+                        fontWeight = if (selectedFilter == filter) FontWeight.SemiBold else FontWeight.Normal,
+                    )
+                },
+                selected = selectedFilter == filter,
+                leadingIcon = {
+                    when (filter) {
+                        FilterType.ALL ->
+                            Icon(
+                                imageVector = Icons.Default.List,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        FilterType.IN_PROGRESS ->
+                            Icon(
+                                imageVector = Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        FilterType.COMPLETED ->
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                    }
+                },
+                colors =
+                    FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
+            )
+        }
+    }
+}
+
+@Composable
+fun EmptyStateView(
+    searchText: String,
+    selectedFilter: FilterType,
+) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(
+            imageVector = if (searchText.isNotEmpty()) Icons.Default.Search else Icons.Default.Star,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text =
+                when {
+                    searchText.isNotEmpty() -> "No se encontraron materias"
+                    selectedFilter != FilterType.ALL -> "No hay materias ${selectedFilter.displayName.lowercase()}"
+                    else -> "No tienes materias registradas"
+                },
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+
+        if (searchText.isNotEmpty()) {
+            Text(
+                text = "Intenta con otros términos de búsqueda",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+    }
+}
+
+
+fun filterMaterias(
+    materias: List<Materia>,
+    searchText: String,
+    filterType: FilterType,
+): List<Materia> =
+    materias.filter { materia ->
+        val matchesSearch =
+            if (searchText.isBlank()) {
+                true
+            } else {
+                materia.name.contains(searchText, ignoreCase = true) ||
+                    materia.sigla.contains(searchText, ignoreCase = true) ||
+                    materia.paralelo.contains(searchText, ignoreCase = true)
+            }
+
+        val matchesFilter =
+            when (filterType) {
+                FilterType.ALL -> true
+                FilterType.IN_PROGRESS -> materia.vigente
+                FilterType.COMPLETED -> !materia.vigente
+            }
+
+        matchesSearch && matchesFilter
+    }
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
@@ -109,12 +365,21 @@ fun MateriaCard(
         modifier =
             Modifier
                 .fillMaxWidth()
+                .padding(vertical = 6.dp)
                 .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             AsyncImage(
                 model =
@@ -127,35 +392,74 @@ fun MateriaCard(
                 contentScale = ContentScale.Crop,
                 modifier =
                     Modifier
-                        .fillMaxWidth()
-                        .height(160.dp),
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(12.dp)),
             )
 
+            Spacer(modifier = Modifier.width(16.dp))
+
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.weight(1f),
             ) {
                 Text(
                     text = materia.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                Text(
+                    text = "[${materia.sigla}]",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp),
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Button(
-                    onClick = onClick,
-                    colors =
-                        ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                        ),
-                    modifier =
-                        Modifier
-                            .align(Alignment.Start)
-                            .height(36.dp),
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Ingresar")
+                    Text(
+                        text = "Paralelo ${materia.paralelo}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xCCBDBEC0),
+                        tonalElevation = 2.dp,
+                    ) {
+                        Text(
+                            text = materia.gestion,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Black,
+                        )
+                    }
                 }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+            IconButton(
+                onClick = onClick,
+                modifier =
+                    Modifier
+                        .background(
+                            MaterialTheme.colorScheme.primary,
+                            RoundedCornerShape(8.dp),
+                        ).size(40.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowForward,
+                    contentDescription = "Ingresar",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                )
             }
         }
     }
