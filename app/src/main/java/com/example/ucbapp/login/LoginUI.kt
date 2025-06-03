@@ -55,9 +55,10 @@ fun LoginUI(onSuccess: () -> Unit) {
 
     val scope = rememberCoroutineScope()
     val launcher =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
-            viewModel.handleSignInResult(result)
-        }
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartActivityForResult(),
+            onResult = { /* No necesitamos hacer nada con el resultado */ },
+        )
 
     LaunchedEffect(loginState) {
         when (loginState) {
