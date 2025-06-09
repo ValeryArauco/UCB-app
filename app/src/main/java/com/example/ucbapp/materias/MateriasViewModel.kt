@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.data.NetworkResult
 import com.example.domain.Materia
 import com.example.usecases.GetMaterias
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +38,8 @@ class MateriasViewModel
         fun loadMaterias() {
             _uiState.value = MateriasUIState.Loading
             viewModelScope.launch(Dispatchers.IO) {
-                val response = getMaterias.invoke("valery.arauco@ucb.edu.bo")
+                val email = Firebase.auth.currentUser?.email ?: ""
+                val response = getMaterias.invoke(email)
 
                 when (val result = response) {
                     is NetworkResult.Error -> {

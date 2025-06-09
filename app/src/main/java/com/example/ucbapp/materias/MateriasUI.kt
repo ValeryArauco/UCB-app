@@ -25,7 +25,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -80,12 +80,11 @@ fun MateriasUI(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color(0xFFF8F9FA),
-    ) { paddingValues ->
+    ) {
         Column(
             modifier =
                 Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+                    .fillMaxSize(),
         ) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -111,7 +110,6 @@ fun MateriasUI(
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
-
 
                     FilterChips(
                         selectedFilter = selectedFilter,
@@ -237,7 +235,8 @@ fun FilterChips(
     onFilterSelected: (FilterType) -> Unit,
 ) {
     LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
         contentPadding = PaddingValues(horizontal = 4.dp),
     ) {
         items(FilterType.entries) { filter ->
@@ -297,7 +296,7 @@ fun EmptyStateView(
         verticalArrangement = Arrangement.Center,
     ) {
         Icon(
-            imageVector = if (searchText.isNotEmpty()) Icons.Default.Search else Icons.Default.Star,
+            imageVector = if (searchText.isNotEmpty()) Icons.Default.Search else Icons.Default.Warning,
             contentDescription = null,
             modifier = Modifier.size(64.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -328,7 +327,6 @@ fun EmptyStateView(
         }
     }
 }
-
 
 fun filterMaterias(
     materias: List<Materia>,
@@ -371,7 +369,7 @@ fun MateriaCard(
         shape = RoundedCornerShape(12.dp),
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                containerColor = Color.White,
             ),
     ) {
         Row(
@@ -379,7 +377,7 @@ fun MateriaCard(
                 Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Top,
         ) {
             AsyncImage(
                 model =
@@ -399,7 +397,7 @@ fun MateriaCard(
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
                     text = materia.name,
@@ -410,56 +408,60 @@ fun MateriaCard(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                Text(
-                    text = "[${materia.sigla}]",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 2.dp),
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
+                Spacer(modifier = Modifier.height(6.dp))
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(
-                        text = "Paralelo ${materia.paralelo}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color(0xCCBDBEC0),
-                        tonalElevation = 2.dp,
-                    ) {
+                    Column {
                         Text(
-                            text = materia.gestion,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.Black,
+                            text = "[${materia.sigla}]",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "Par. ${materia.paralelo}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color(0xFFE8E8EA),
+                            ) {
+                                Text(
+                                    text = materia.gestion,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Black,
+                                )
+                            }
+                        }
+                    }
+                    IconButton(
+                        onClick = onClick,
+                        modifier =
+                            Modifier
+                                .background(
+                                    MaterialTheme.colorScheme.primary,
+                                    RoundedCornerShape(8.dp),
+                                ).size(40.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = "Ingresar",
+                            tint = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
                 }
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-            IconButton(
-                onClick = onClick,
-                modifier =
-                    Modifier
-                        .background(
-                            MaterialTheme.colorScheme.primary,
-                            RoundedCornerShape(8.dp),
-                        ).size(40.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowForward,
-                    contentDescription = "Ingresar",
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                )
             }
         }
     }

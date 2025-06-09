@@ -1,27 +1,23 @@
 package com.example.ucbapp.navigation
 
+import ElementosUI
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -35,8 +31,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.domain.Elemento
 import com.example.domain.Materia
-import com.example.ucbapp.MateriaDetail.MateriaUI
+import com.example.ucbapp.elementoDetails.ElementoDetailsUI
 import com.example.ucbapp.login.LoginUI
 import com.example.ucbapp.materias.MateriasUI
 import com.example.ucbapp.notificaciones.NotificacionesUI
@@ -46,6 +43,7 @@ import kotlinx.serialization.json.Json
 import java.net.URLDecoder
 import java.net.URLEncoder
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("ktlint:standard:function-naming")
 @Composable
@@ -66,24 +64,8 @@ fun AppNavigation() {
                 Screens.NotificationsScreen.route,
                 Screens.PerfilScreen.route,
             )
-    val needsBackButton =
-        currentRoute in
-            listOf(
-                Screens.MateriaDetailScreen.route,
-            )
-
-    val showTopBar = currentRoute != Screens.LoginScreen.route
 
     Scaffold(
-        topBar = {
-            if (showTopBar) {
-                AppTopBar(
-                    title = "",
-                    showBackButton = needsBackButton,
-                    onBackClick = { navController.popBackStack() },
-                )
-            }
-        },
         bottomBar = {
             if (showBottomBar) {
                 BottomNavigationBar(
@@ -111,13 +93,13 @@ fun AppNavigation() {
             }
             composable(Screens.MateriasScreen.route) {
                 MateriasUI(onSuccess = { materia ->
-                    val movieJson = Json.encodeToString(materia)
-                    val encodeMovieJson = URLEncoder.encode(movieJson, "UTF-8")
-                    navController.navigate("${Screens.MateriaDetailScreen.route}/$encodeMovieJson")
+                    val materiaJson = Json.encodeToString(materia)
+                    val encodeMateriaJson = URLEncoder.encode(materiaJson, "UTF-8")
+                    navController.navigate("${Screens.ElementosScreen.route}/$encodeMateriaJson")
                 })
             }
             composable(
-                route = "${Screens.MateriaDetailScreen.route}/{materia}",
+                route = "${Screens.ElementosScreen.route}/{materia}",
                 arguments =
                     listOf(
                         navArgument("materia") {
@@ -129,7 +111,28 @@ fun AppNavigation() {
                 val materiaDecoded = URLDecoder.decode(materiaJson, "UTF-8")
                 val materia = Json.decodeFromString<Materia>(materiaDecoded)
 
-                MateriaUI(materia = materia, onBackPressed = { navController.popBackStack() })
+                ElementosUI(materia = materia, onBackPressed = {
+                    navController.popBackStack()
+                }, onClick = { elemento ->
+                    val elementoJson = Json.encodeToString(elemento)
+                    val encodeElementoJson = URLEncoder.encode(elementoJson, "UTF-8")
+                    navController.navigate("${Screens.ElementoDetailsScreen.route}/$encodeElementoJson")
+                })
+            }
+            composable(
+                route = "${Screens.ElementoDetailsScreen.route}/{elemento}",
+                arguments =
+                    listOf(
+                        navArgument("elemento") {
+                            type = NavType.StringType
+                        },
+                    ),
+            ) {
+                val elementoJson = it.arguments?.getString("elemento") ?: ""
+                val elementoDecoded = URLDecoder.decode(elementoJson, "UTF-8")
+                val elemento = Json.decodeFromString<Elemento>(elementoDecoded)
+
+                ElementoDetailsUI(elemento = elemento, onBackPressed = { navController.popBackStack() })
             }
             composable(Screens.NotificationsScreen.route) {
                 NotificacionesUI()
@@ -141,35 +144,7 @@ fun AppNavigation() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AppTopBar(
-    title: String,
-    showBackButton: Boolean = false,
-    onBackClick: () -> Unit = {},
-) {
-    TopAppBar(
-        title = { Text(title) },
-        navigationIcon = {
-            if (showBackButton) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver",
-                        tint = Color.White,
-                    )
-                }
-            }
-        },
-        colors =
-            TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-    )
-}
-
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun BottomNavigationBar(
     navController: NavController,

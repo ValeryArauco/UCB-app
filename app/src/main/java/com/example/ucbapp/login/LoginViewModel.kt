@@ -51,13 +51,11 @@ class LoginViewModel
                 return
             }
 
-            // Utilizamos GoogleSignInUtils pero modificamos el callback para verificar el email primero
             GoogleSignInUtils.doGoogleSignIn(
                 context = context,
                 scope = viewModelScope,
                 launcher = launcher,
                 login = {
-                    // En lugar de cambiar el estado directamente, verificamos si el usuario está permitido
                     viewModelScope.launch {
                         val email = Firebase.auth.currentUser?.email ?: ""
                         Log.d("LoginViewModel", "Verificando email: $email")

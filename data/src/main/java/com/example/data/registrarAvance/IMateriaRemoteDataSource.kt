@@ -1,4 +1,4 @@
-package com.example.data.materia
+package com.example.data.registrarAvance
 import com.example.data.NetworkResult
 import com.example.domain.Materia
 

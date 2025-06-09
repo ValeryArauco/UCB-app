@@ -1,7 +1,7 @@
-package com.example.framework.materia
+package com.example.framework.registrarAvance
 
 import com.example.data.NetworkResult
-import com.example.data.materia.IMateriaRemoteDataSource
+import com.example.data.registrarAvance.IMateriaRemoteDataSource
 import com.example.domain.Materia
 import com.example.framework.mappers.toModel
 import com.example.framework.service.RetrofitBuilder

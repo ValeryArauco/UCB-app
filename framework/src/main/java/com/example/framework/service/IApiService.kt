@@ -1,16 +1,79 @@
 package com.example.framework.service
 
-import com.example.framework.dto.MateriaResponseDto
+import com.example.framework.dto.ApiResponseDto
+import com.example.framework.dto.CreateRecuperatorioRequest
+import com.example.framework.dto.ElementoDto
+import com.example.framework.dto.MateriaDto
+import com.example.framework.dto.RecuperatorioDto
+import com.example.framework.dto.ResponseDto
+import com.example.framework.dto.SaberDto
+import com.example.framework.dto.UpdateElementoRequest
+import com.example.framework.dto.UpdateMateriaRequest
+import com.example.framework.dto.UpdateRecuperatorioRequest
 import com.example.framework.dto.UserCheckResponse
 import retrofit2.Response
+import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
+import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface IApiService {
+    @PATCH("materia/{id}/increment")
+    suspend fun updateMateria(
+        @Path("id") id: Int,
+        @Body body: UpdateMateriaRequest,
+    ): Response<ApiResponseDto>
+
+    @PATCH("elemento/{id}")
+    suspend fun updateElemento(
+        @Path("id") id: Int,
+        @Body body: UpdateElementoRequest,
+    ): Response<ApiResponseDto>
+
+    @DELETE("recuperatorio/{id}")
+    suspend fun deleteRecuperatorio(
+        @Path("id") id: Int,
+    ): Response<ApiResponseDto>
+
+    @POST("recuperatorio")
+    suspend fun createRecuperatorio(
+        @Body body: CreateRecuperatorioRequest,
+    ): Response<ApiResponseDto>
+
+    @PATCH("recuperatorio/{id}")
+    suspend fun updateRecuperatorio(
+        @Path("id") id: Int,
+        @Body body: UpdateRecuperatorioRequest,
+    ): Response<ApiResponseDto>
+
+    @PATCH("saber/{id}/completado")
+    suspend fun updateSaber(
+        @Path("id") id: Int,
+        @Body body: Map<String, Boolean>,
+    ): Response<ApiResponseDto>
+
+    @GET("recuperatorios")
+    suspend fun fetchRecuperatoriosByElemento(
+        @Query("elemento") elementoId: String,
+    ): Response<ResponseDto<RecuperatorioDto>>
+
+    @GET("saberes")
+    suspend fun fetchSaberesByElemento(
+        @Query("elemento") elementoId: String,
+    ): Response<ResponseDto<SaberDto>>
+
+    @GET("elementos")
+    suspend fun fetchElementosByMateria(
+        @Query("materia") materiaId: String,
+    ): Response<ResponseDto<ElementoDto>>
+
     @GET("materias")
     suspend fun fetchMateriasByDocente(
         @Query("email") email: String,
-    ): Response<MateriaResponseDto>
+    ): Response<ResponseDto<MateriaDto>>
 
     @GET("validate-email")
     suspend fun isUserAllowed(

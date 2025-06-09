@@ -87,7 +87,7 @@ fun LoginUI(onSuccess: () -> Unit) {
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.primary), // Dark blue background color as seen in image
+                .background(MaterialTheme.colorScheme.primary),
     ) {
         Column(
             modifier =
@@ -103,7 +103,7 @@ fun LoginUI(onSuccess: () -> Unit) {
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = 14.dp),
             )
 
             Text(
@@ -111,7 +111,7 @@ fun LoginUI(onSuccess: () -> Unit) {
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 32.dp),
+                modifier = Modifier.padding(bottom = 24.dp),
             )
 
             Image(
@@ -120,7 +120,7 @@ fun LoginUI(onSuccess: () -> Unit) {
                 modifier =
                     Modifier
                         .size(450.dp)
-                        .padding(bottom = 40.dp),
+                        .padding(bottom = 32.dp),
             )
 
             if (isLoading) {
@@ -160,7 +160,7 @@ fun LoginUI(onSuccess: () -> Unit) {
                             modifier = Modifier.size(24.dp),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "Iniciar sesión con Google")
+                        Text(text = "Continuar con Google")
                     }
                 }
             }

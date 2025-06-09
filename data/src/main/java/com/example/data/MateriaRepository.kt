@@ -1,6 +1,6 @@
 package com.example.data
 
-import com.example.data.materia.IMateriaRemoteDataSource
+import com.example.data.registrarAvance.IMateriaRemoteDataSource
 import com.example.domain.Materia
 
 class MateriaRepository(
