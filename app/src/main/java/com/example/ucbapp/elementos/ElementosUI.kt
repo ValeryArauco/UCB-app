@@ -52,6 +52,10 @@ fun ElementosUI(
     LaunchedEffect(Unit) {
         elementosViewModel.loadElementos(materia)
     }
+
+    LaunchedEffect(materia.elemCompletados, materia.elemEvaluados, materia.recTomados) {
+        elementosViewModel.refreshMateriaData(materia)
+    }
     val elementosState by elementosViewModel.uiState.collectAsState()
     var selectedFilter by remember { mutableStateOf(FilterType.ALL) }
 
@@ -75,7 +79,12 @@ fun ElementosUI(
                 shadowElevation = 2.dp,
             ) {
                 Column {
-                    ProgressSection(materia)
+                    val updatedMateria =
+                        when (val state = elementosState) {
+                            is ElementosViewModel.ElementosUIState.Loaded -> state.materia ?: materia
+                            else -> materia
+                        }
+                    ProgressSection(updatedMateria)
 
                     FilterChips(
                         selectedFilter = selectedFilter,
@@ -384,7 +393,7 @@ fun CompetencyCard(
                                     element.completado -> Color(0xFF333333)
                                     diasRestantes < 0 -> Color.Red
                                     diasRestantes <= 7 -> Color(0xFF000000)
-                                    else -> Color(0xFF755900)
+                                    else -> Color(0xFF000000)
                                 },
                             fontWeight = FontWeight.Medium,
                         )

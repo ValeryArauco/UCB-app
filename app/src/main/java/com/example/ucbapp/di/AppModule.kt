@@ -27,6 +27,7 @@ import com.example.usecases.CreateRecuperatorio
 import com.example.usecases.DeleteRecuperatorio
 import com.example.usecases.DoLogin
 import com.example.usecases.GetElementos
+import com.example.usecases.GetMateria
 import com.example.usecases.GetMaterias
 import com.example.usecases.GetRecuperatorios
 import com.example.usecases.GetSaberes
@@ -163,4 +164,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideUpdateMateria(updateRepository: UpdateRepository): UpdateMateria = UpdateMateria(updateRepository)
+
+    @Provides
+    @Singleton
+    fun provideGetMateria(updateRepository: UpdateRepository): GetMateria = GetMateria(updateRepository)
 }

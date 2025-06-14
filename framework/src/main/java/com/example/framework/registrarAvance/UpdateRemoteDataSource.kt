@@ -3,11 +3,13 @@ package com.example.framework.registrarAvance
 import com.example.data.NetworkResult
 import com.example.data.registrarAvance.IUpdateRemoteDataSource
 import com.example.domain.Elemento
+import com.example.domain.Materia
 import com.example.domain.Recuperatorio
 import com.example.framework.dto.CreateRecuperatorioRequest
 import com.example.framework.dto.UpdateElementoRequest
 import com.example.framework.dto.UpdateMateriaRequest
 import com.example.framework.dto.UpdateRecuperatorioRequest
+import com.example.framework.mappers.toModel
 import com.example.framework.service.RetrofitBuilder
 
 class UpdateRemoteDataSource(
@@ -79,7 +81,7 @@ class UpdateRemoteDataSource(
                 fechaRegistro = elemento.fechaRegistro,
                 saberesCompletados = elemento.saberesCompletados,
                 completado = elemento.completado,
-                evaluado = elemento.completado,
+                evaluado = elemento.evaluado,
                 comentario = elemento.comentario,
             )
 
@@ -113,6 +115,15 @@ class UpdateRemoteDataSource(
         } else {
             val message = response.body()?.message ?: response.message()
             NetworkResult.Error(message)
+        }
+    }
+
+    override suspend fun getMateria(id: Int): NetworkResult<Materia> {
+        val response = retrofitService.apiService.getMateriaById(id)
+        if (response.isSuccessful) {
+            return NetworkResult.Success(response.body()!!.data.map { it.toModel() }[0])
+        } else {
+            return NetworkResult.Error(response.message())
         }
     }
 }

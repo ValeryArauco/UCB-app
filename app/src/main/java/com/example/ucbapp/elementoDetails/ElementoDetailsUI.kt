@@ -30,6 +30,7 @@ import com.example.domain.Elemento
 import com.example.domain.Recuperatorio
 import com.example.domain.Saber
 import com.example.ucbapp.materias.ErrorView
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -304,10 +305,10 @@ fun ElementoDetailsUI(
                                 ConfirmarRegistroDialog(
                                     onDismissRequest = { showConfirmDialog = false },
                                     onConfirmation = {
-                                        elementoDetailsViewModel.completarElemento()
                                         showConfirmDialog = false
                                         onBackPressed()
                                     },
+                                    elementoDetailsViewModel = elementoDetailsViewModel,
                                 )
                             }
                         }
@@ -325,16 +326,25 @@ fun ElementoDetailsUI(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ConfirmarRegistroDialog(
     onDismissRequest: () -> Unit,
     onConfirmation: () -> Unit,
+    elementoDetailsViewModel: ElementoDetailsViewModel,
 ) {
     var confirmacion by remember { mutableStateOf("") }
+    var isProcessing by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     AlertDialog(
-        onDismissRequest = onDismissRequest,
+        onDismissRequest =
+            if (isProcessing) {
+                {}
+            } else {
+                onDismissRequest
+            },
         title = {
             Text(text = "Confirmación de cambios")
         },
@@ -349,6 +359,7 @@ fun ConfirmarRegistroDialog(
                     value = confirmacion,
                     onValueChange = { confirmacion = it },
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = !isProcessing,
                     placeholder = {
                         Text(
                             text = "Confirmar",
@@ -362,13 +373,49 @@ fun ConfirmarRegistroDialog(
                             unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
                         ),
                 )
+
+                if (isProcessing) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Guardando cambios...",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp,
+                        )
+                    }
+                }
             }
         },
         confirmButton = {
             TextButton(
                 onClick = {
                     if (confirmacion.trim().equals("Confirmar", ignoreCase = false)) {
-                        onConfirmation()
+                        isProcessing = true
+                        scope.launch {
+                            try {
+                                elementoDetailsViewModel.completarElemento().join()
+
+                                isProcessing = false
+                                onConfirmation()
+                            } catch (e: Exception) {
+                                isProcessing = false
+                                Toast
+                                    .makeText(
+                                        context,
+                                        "Error al guardar: ${e.message}",
+                                        Toast.LENGTH_LONG,
+                                    ).show()
+                            }
+                        }
                     } else {
                         Toast
                             .makeText(
@@ -378,6 +425,7 @@ fun ConfirmarRegistroDialog(
                             ).show()
                     }
                 },
+                enabled = !isProcessing,
             ) {
                 Text("Aceptar")
             }
@@ -385,6 +433,7 @@ fun ConfirmarRegistroDialog(
         dismissButton = {
             TextButton(
                 onClick = onDismissRequest,
+                enabled = !isProcessing,
             ) {
                 Text("Cancelar")
             }

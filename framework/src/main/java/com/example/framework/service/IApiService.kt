@@ -21,6 +21,11 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface IApiService {
+    @GET("materia/{id}")
+    suspend fun getMateriaById(
+        @Path("id") id: Int,
+    ): Response<ResponseDto<MateriaDto>>
+
     @PATCH("materia/{id}/increment")
     suspend fun updateMateria(
         @Path("id") id: Int,

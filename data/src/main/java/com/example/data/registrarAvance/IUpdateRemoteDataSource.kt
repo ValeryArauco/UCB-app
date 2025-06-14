@@ -2,6 +2,7 @@ package com.example.data.registrarAvance
 
 import com.example.data.NetworkResult
 import com.example.domain.Elemento
+import com.example.domain.Materia
 import com.example.domain.Recuperatorio
 
 interface IUpdateRemoteDataSource {
@@ -21,4 +22,6 @@ interface IUpdateRemoteDataSource {
         elemCompletados: Int,
         elemEvaluados: Int,
     ): NetworkResult<Boolean>
+
+    suspend fun getMateria(id: Int): NetworkResult<Materia>
 }

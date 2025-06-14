@@ -19,6 +19,9 @@ import com.example.usecases.UpdateRecuperatorio
 import com.example.usecases.UpdateSaber
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -28,6 +31,7 @@ import java.time.ZoneId
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class ElementoDetailsViewModel
@@ -192,9 +196,9 @@ class ElementoDetailsViewModel
 
         private fun getRecuperatoriosNuevos(): List<Recuperatorio> = currentRecuperatorios.filter { it.id == 0 }
 
-        private fun getRecuperatoriosTomados(): Int = currentRecuperatorios.filter { it.completado == true }.size
+        private fun getRecuperatoriosTomados(): Int = currentRecuperatorios.count { it.completado == true }
 
-        private fun getSaberesCompletados(): Int = currentSaberes.filter { it.completado == true }.size
+        private fun getSaberesCompletados(): Int = _saberesSeleccionados.value.size
 
         private fun getRecuperatoriosEliminados(): List<Recuperatorio> =
             originalRecuperatorios.filter { original ->
@@ -202,36 +206,63 @@ class ElementoDetailsViewModel
             }
 
         @RequiresApi(Build.VERSION_CODES.O)
-        fun completarElemento() {
-            viewModelScope.launch {
+        fun completarElemento(): Job {
+            return viewModelScope.launch(Dispatchers.IO) {
                 try {
-                    val elemento = currentElemento ?: return@launch
+                    val elemento =
+                        currentElemento ?: run {
+                            Log.e("ViewModel", "Elemento actual es null")
+                            return@launch
+                        }
 
-                    val saberIds = _saberesSeleccionados.value
+                    val saberIds = _saberesSeleccionados.value.toList()
+
+                    Log.d("ViewModel", "Total saberes seleccionados: ${saberIds.size}")
+                    Log.d("ViewModel", "Saberes a actualizar: $saberIds")
+
+                    var saberesActualizadosExitosamente = 0
+
                     for (saberId in saberIds) {
-                        val saber = currentSaberes.find { it.id == saberId }
-                        if (saber != null && !saber.completado) {
-                            when (val result = updateSaber.invoke(saberId)) {
-                                is NetworkResult.Success -> {
-                                    Log.d("ViewModel", "Saber $saberId actualizado correctamente")
-                                }
-                                is NetworkResult.Error -> {
-                                    Log.e("ViewModel", "Error al actualizar el saber $saberId: ${result.error}")
-                                    return@launch
-                                }
+                        ensureActive()
+
+                        when (val result = updateSaber.invoke(saberId)) {
+                            is NetworkResult.Success -> {
+                                saberesActualizadosExitosamente++
+                                Log.d(
+                                    "ViewModel",
+                                    "Saber $saberId actualizado correctamente ($saberesActualizadosExitosamente/${saberIds.size})",
+                                )
+                            }
+                            is NetworkResult.Error -> {
+                                Log.e("ViewModel", "Error al actualizar el saber $saberId: ${result.error}")
+                                _uiState.value = UIState.Error("Error al actualizar saber $saberId: ${result.error}")
+                                return@launch
                             }
                         }
+
+                        delay(100)
                     }
+
+                    Log.d("ViewModel", "Saberes actualizados exitosamente: $saberesActualizadosExitosamente de ${saberIds.size}")
+
+                    if (saberesActualizadosExitosamente != saberIds.size) {
+                        Log.e("ViewModel", "No todos los saberes se actualizaron correctamente")
+                        _uiState.value = UIState.Error("Solo se actualizaron $saberesActualizadosExitosamente de ${saberIds.size} saberes")
+                        return@launch
+                    }
+
+                    ensureActive()
 
                     val recuperatoriosNuevos = getRecuperatoriosNuevos()
                     for (recuperatorio in recuperatoriosNuevos) {
-                        Log.d("ViewModel", "Recuperatorio $recuperatorio")
+                        Log.d("ViewModel", "Creando recuperatorio: $recuperatorio")
                         when (val result = createRecuperatorio.invoke(recuperatorio)) {
                             is NetworkResult.Success -> {
                                 Log.d("ViewModel", "Recuperatorio creado correctamente")
                             }
                             is NetworkResult.Error -> {
                                 Log.e("ViewModel", "Error al crear recuperatorio: ${result.error}")
+                                _uiState.value = UIState.Error("Error al crear recuperatorio: ${result.error}")
                                 return@launch
                             }
                         }
@@ -245,6 +276,7 @@ class ElementoDetailsViewModel
                             }
                             is NetworkResult.Error -> {
                                 Log.e("ViewModel", "Error al actualizar recuperatorio ${recuperatorio.id}: ${result.error}")
+                                _uiState.value = UIState.Error("Error al actualizar recuperatorio: ${result.error}")
                                 return@launch
                             }
                         }
@@ -258,6 +290,7 @@ class ElementoDetailsViewModel
                             }
                             is NetworkResult.Error -> {
                                 Log.e("ViewModel", "Error al eliminar recuperatorio: ${result.error}")
+                                _uiState.value = UIState.Error("Error al eliminar recuperatorio: ${result.error}")
                                 return@launch
                             }
                         }
@@ -270,7 +303,7 @@ class ElementoDetailsViewModel
                             fechaEvaluado = if (_evaluacionCompletada.value) convertirFecha(_evaluacionFecha.value) else null,
                             completado = true,
                             fechaRegistro = LocalDate.now(ZoneId.of("America/La_Paz")).toString(),
-                            saberesCompletados = getSaberesCompletados(),
+                            saberesCompletados = saberIds.size,
                         )
 
                     when (val result = updateElemento.invoke(elementoActualizado)) {
@@ -279,24 +312,54 @@ class ElementoDetailsViewModel
                         }
                         is NetworkResult.Error -> {
                             Log.e("ViewModel", "Error al completar elemento: ${result.error}")
+                            _uiState.value = UIState.Error("Error al completar elemento: ${result.error}")
+                            return@launch
                         }
                     }
 
-                    val recuperatoriosTomados = getRecuperatoriosTomados()
-                    val elementosEvaluados = if (_evaluacionCompletada.value) 1 else 0
+                    val nuevosRecuperatoriosTomados =
+                        currentRecuperatorios.count {
+                            it.completado && originalRecuperatorios.none { orig -> orig.id == it.id && orig.completado }
+                        }
 
-                    when (val result = updateMateria.invoke(elemento.materiaId.toInt(), recuperatoriosTomados, 1, elementosEvaluados)) {
+                    val elementosCompletadosIncremento = 1
+                    val elementosEvaluadosIncremento = if (_evaluacionCompletada.value && !elemento.evaluado) 1 else 0
+
+                    when (
+                        val result =
+                            updateMateria.invoke(
+                                elemento.materiaId.toInt(),
+                                nuevosRecuperatoriosTomados,
+                                elementosCompletadosIncremento,
+                                elementosEvaluadosIncremento,
+                            )
+                    ) {
                         is NetworkResult.Success -> {
                             Log.d("ViewModel", "Materia actualizada exitosamente")
                         }
                         is NetworkResult.Error -> {
                             Log.e("ViewModel", "Error al actualizar Materia: ${result.error}")
+                            _uiState.value = UIState.Error("Error al actualizar materia: ${result.error}")
+                            return@launch
                         }
                     }
+                } catch (e: CancellationException) {
+                    Log.w("ViewModel", "Operación cancelada por el usuario")
+                    throw e
                 } catch (e: Exception) {
                     Log.e("ViewModel", "Error general al completar elemento: ${e.message}")
+                    _uiState.value = UIState.Error("Error general: ${e.message}")
                 }
             }
+        }
+
+        fun debugSaberesSeleccionados() {
+            val saberes = _saberesSeleccionados.value
+            Log.d("ViewModel", "=== DEBUG SABERES ===")
+            Log.d("ViewModel", "Saberes seleccionados: $saberes")
+            Log.d("ViewModel", "Cantidad: ${saberes.size}")
+            Log.d("ViewModel", "getSaberesCompletados(): ${getSaberesCompletados()}")
+            Log.d("ViewModel", "===================")
         }
 
         fun toggleSaber(

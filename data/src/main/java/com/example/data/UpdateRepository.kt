@@ -2,6 +2,7 @@ package com.example.data
 
 import com.example.data.registrarAvance.IUpdateRemoteDataSource
 import com.example.domain.Elemento
+import com.example.domain.Materia
 import com.example.domain.Recuperatorio
 
 class UpdateRepository(
@@ -41,4 +42,6 @@ class UpdateRepository(
             elemCompletados,
             elemEvaluados,
         )
+
+    suspend fun getMateria(id: Int): NetworkResult<Materia> = this.remoteDataSource.getMateria(id)
 }

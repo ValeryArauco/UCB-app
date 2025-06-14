@@ -1,11 +1,11 @@
 package com.example.ucbapp.navigation
 
 import ElementosUI
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
@@ -20,7 +20,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -43,6 +42,7 @@ import kotlinx.serialization.json.Json
 import java.net.URLDecoder
 import java.net.URLEncoder
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("ktlint:standard:function-naming")
@@ -74,7 +74,7 @@ fun AppNavigation() {
                 )
             }
         },
-    ) { paddingValues ->
+    ) {
         NavHost(
             navController = navController,
             startDestination = Screens.LoginScreen.route,
@@ -82,7 +82,6 @@ fun AppNavigation() {
             exitTransition = { ExitTransition.None },
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None },
-            modifier = Modifier.padding(paddingValues),
         ) {
             composable(Screens.LoginScreen.route) {
                 LoginUI(
