@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:787541450450:android:d6eb2ee503913d59edd70b",
         "android_client_info": {
-          "package_name": "com.example.ucbapp"
+          "package_name": "com.medicat.ucbapp"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "787541450450-ai93o8n3m4cqla7lb39vsquuu1005mvb.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.ucbapp",
+            "package_name": "com.medicat.ucbapp",
             "certificate_hash": "b7f77c415c8ccd651d7bd73a56dda6ccb96062b9"
           }
         },

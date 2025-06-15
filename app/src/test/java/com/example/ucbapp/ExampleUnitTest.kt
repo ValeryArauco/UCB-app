@@ -1,4 +1,4 @@
-package com.example.ucbapp
+package com.medicat.ucbapp
 
 import org.junit.Test
 

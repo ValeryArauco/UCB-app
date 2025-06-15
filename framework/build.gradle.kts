@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.framework"
+    namespace = "com.medicat.framework"
     compileSdk = 35
 
     defaultConfig {

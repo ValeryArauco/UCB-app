@@ -1,4 +1,4 @@
-package com.example.framework
+package com.medicat.framework
 
 import org.junit.Test
 
