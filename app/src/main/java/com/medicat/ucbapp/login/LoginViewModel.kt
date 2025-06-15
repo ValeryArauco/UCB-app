@@ -7,12 +7,12 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.medicat.data.NetworkResult
 import com.medicat.ucbapp.service.GoogleSignInUtils
 import com.medicat.ucbapp.service.InternetConnection.Companion.isConnected
 import com.medicat.usecases.IsUserAllowed
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

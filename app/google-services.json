@@ -7,7 +7,7 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:787541450450:android:d6eb2ee503913d59edd70b",
+        "mobilesdk_app_id": "1:787541450450:android:eb01d2c9a7fdc2a1edd70b",
         "android_client_info": {
           "package_name": "com.medicat.ucbapp"
         }
@@ -22,7 +22,7 @@
           }
         },
         {
-          "client_id": "787541450450-5ivsvt6ph3ebnotnifk1h9ult6p7d0qt.apps.googleusercontent.com",
+          "client_id": "787541450450-teu5fpkkg5a4obgjhr4puehb9c6013ct.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
