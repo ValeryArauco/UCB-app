@@ -1,16 +1,19 @@
 package com.medicat.framework.service
 
 import com.medicat.framework.dto.ApiResponseDto
+import com.medicat.framework.dto.CheckResponse
 import com.medicat.framework.dto.CreateRecuperatorioRequest
 import com.medicat.framework.dto.ElementoDto
+import com.medicat.framework.dto.FcmTokenRequest
 import com.medicat.framework.dto.MateriaDto
+import com.medicat.framework.dto.NotificacionDto
 import com.medicat.framework.dto.RecuperatorioDto
 import com.medicat.framework.dto.ResponseDto
 import com.medicat.framework.dto.SaberDto
+import com.medicat.framework.dto.SuccessResponse
 import com.medicat.framework.dto.UpdateElementoRequest
 import com.medicat.framework.dto.UpdateMateriaRequest
 import com.medicat.framework.dto.UpdateRecuperatorioRequest
-import com.medicat.framework.dto.UserCheckResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -21,6 +24,26 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface IApiService {
+    @POST("fcm-token")
+    suspend fun updateFcmToken(
+        @Body request: FcmTokenRequest,
+    ): Response<SuccessResponse>
+
+    @PATCH("notificaciones/{id}/read")
+    suspend fun markAsRead(
+        @Path("id") notificationId: Int,
+    ): Response<SuccessResponse>
+
+    @DELETE("notificaciones/{id}")
+    suspend fun deleteNotification(
+        @Path("id") notificationId: Int,
+    ): Response<SuccessResponse>
+
+    @GET("notificaciones")
+    suspend fun getNotificaciones(
+        @Query("email") email: String,
+    ): Response<ResponseDto<NotificacionDto>>
+
     @GET("materia/{id}")
     suspend fun getMateriaById(
         @Path("id") id: Int,
@@ -83,5 +106,5 @@ interface IApiService {
     @GET("validate-email")
     suspend fun isUserAllowed(
         @Query("email") email: String,
-    ): Response<UserCheckResponse>
+    ): Response<CheckResponse>
 }

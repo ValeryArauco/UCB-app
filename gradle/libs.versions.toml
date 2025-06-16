@@ -61,7 +61,7 @@ hilt-test = { group = "com.google.dagger", name = "hilt-android-testing", versio
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-transition = { group = "androidx.transition", name = "transition", version.ref = "transition" }
-leakcanary-android = "com.squareup.leakcanary:leakcanary-android:2.14"
+
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref= "retrofit"}
 moshi = { group = "com.squareup.moshi", name = "moshi", version.ref= "moshi"}

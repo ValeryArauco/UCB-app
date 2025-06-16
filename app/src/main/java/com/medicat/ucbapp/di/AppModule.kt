@@ -10,6 +10,7 @@ import com.medicat.data.UpdateRepository
 import com.medicat.data.UserRepository
 import com.medicat.data.login.ILoginRemoteDataSource
 import com.medicat.data.push.IPushDataSource
+import com.medicat.data.push.IPushRemoteDataSource
 import com.medicat.data.registrarAvance.IElementoRemoteDataSource
 import com.medicat.data.registrarAvance.IMateriaRemoteDataSource
 import com.medicat.data.registrarAvance.IRecuperatorioRemoteDataSource
@@ -17,6 +18,7 @@ import com.medicat.data.registrarAvance.ISaberRemoteDataSource
 import com.medicat.data.registrarAvance.IUpdateRemoteDataSource
 import com.medicat.framework.login.LoginRemoteDataSource
 import com.medicat.framework.push.FirebaseNotificationDataSource
+import com.medicat.framework.push.PushRemoteDataSource
 import com.medicat.framework.registrarAvance.ElementoRemoteDataSource
 import com.medicat.framework.registrarAvance.MateriaRemoteDataSource
 import com.medicat.framework.registrarAvance.RecuperatorioRemoteDataSource
@@ -24,19 +26,23 @@ import com.medicat.framework.registrarAvance.SaberRemoteDataSource
 import com.medicat.framework.registrarAvance.UpdateRemoteDataSource
 import com.medicat.framework.service.RetrofitBuilder
 import com.medicat.usecases.CreateRecuperatorio
+import com.medicat.usecases.DeleteNotification
 import com.medicat.usecases.DeleteRecuperatorio
 import com.medicat.usecases.DoLogin
 import com.medicat.usecases.GetElementos
 import com.medicat.usecases.GetMateria
 import com.medicat.usecases.GetMaterias
+import com.medicat.usecases.GetNotificaciones
 import com.medicat.usecases.GetRecuperatorios
 import com.medicat.usecases.GetSaberes
 import com.medicat.usecases.IsUserAllowed
+import com.medicat.usecases.MarkAsRead
 import com.medicat.usecases.ObtainToken
 import com.medicat.usecases.UpdateElemento
 import com.medicat.usecases.UpdateMateria
 import com.medicat.usecases.UpdateRecuperatorio
 import com.medicat.usecases.UpdateSaber
+import com.medicat.usecases.UpdateToken
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -75,8 +81,19 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun providePushNotificationRepository(pushDataSource: IPushDataSource): PushNotificationRepository =
-        PushNotificationRepository(pushDataSource)
+    fun pushRemoteDataSource(retrofiService: RetrofitBuilder): IPushRemoteDataSource = PushRemoteDataSource(retrofiService)
+
+    @Provides
+    @Singleton
+    fun provideGetNotificaciones(pushNotificationRepository: PushNotificationRepository): GetNotificaciones =
+        GetNotificaciones(pushNotificationRepository)
+
+    @Provides
+    @Singleton
+    fun providePushNotificationRepository(
+        pushRemoteDataSource: IPushRemoteDataSource,
+        pushDataSource: IPushDataSource,
+    ): PushNotificationRepository = PushNotificationRepository(pushRemoteDataSource, pushDataSource)
 
     @Provides
     @Singleton
@@ -168,4 +185,17 @@ object AppModule {
     @Provides
     @Singleton
     fun provideGetMateria(updateRepository: UpdateRepository): GetMateria = GetMateria(updateRepository)
+
+    @Provides
+    @Singleton
+    fun provideMarkAsRead(pushNotificationRepository: PushNotificationRepository): MarkAsRead = MarkAsRead(pushNotificationRepository)
+
+    @Provides
+    @Singleton
+    fun provideDeleteNotification(pushNotificationRepository: PushNotificationRepository): DeleteNotification =
+        DeleteNotification(pushNotificationRepository)
+
+    @Provides
+    @Singleton
+    fun provideUpdateToken(pushNotificationRepository: PushNotificationRepository): UpdateToken = UpdateToken(pushNotificationRepository)
 }

@@ -15,5 +15,5 @@ data class ElementoDto(
     @Json(name = "saberes_completados") val saberesCompletados: Int,
     @Json(name = "completado") val completado: Boolean,
     @Json(name = "evaluado") val evaluado: Boolean,
-    @Json(name = "comentario") val comentario: String,
+    @Json(name = "comentario") val comentario: String?,
 )

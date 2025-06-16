@@ -1,10 +1,12 @@
 package com.medicat.framework.mappers
 import com.medicat.domain.Elemento
 import com.medicat.domain.Materia
+import com.medicat.domain.NotificacionItem
 import com.medicat.domain.Recuperatorio
 import com.medicat.domain.Saber
 import com.medicat.framework.dto.ElementoDto
 import com.medicat.framework.dto.MateriaDto
+import com.medicat.framework.dto.NotificacionDto
 import com.medicat.framework.dto.RecuperatorioDto
 import com.medicat.framework.dto.SaberDto
 
@@ -54,4 +56,16 @@ fun RecuperatorioDto.toModel(): Recuperatorio =
         completado = completado,
         elementoCompetenciaId = elementoCompetenciaId,
         fechaEvaluado = fechaEvaluado,
+    )
+
+fun NotificacionDto.toModel(): NotificacionItem =
+    NotificacionItem(
+        id = id,
+        userId = userId,
+        competitionId = competitionId,
+        type = type,
+        title = title,
+        message = message,
+        isRead = isRead,
+        sentAt = sentAt,
     )

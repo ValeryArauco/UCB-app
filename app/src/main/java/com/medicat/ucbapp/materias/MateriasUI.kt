@@ -1,5 +1,6 @@
 package com.medicat.ucbapp.materias
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -64,6 +65,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.medicat.domain.Materia
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun MateriasUI(
@@ -173,6 +175,7 @@ fun MateriasUI(
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun SearchBar(
     searchText: String,

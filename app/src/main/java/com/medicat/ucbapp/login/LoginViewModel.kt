@@ -13,10 +13,13 @@ import com.medicat.data.NetworkResult
 import com.medicat.ucbapp.service.GoogleSignInUtils
 import com.medicat.ucbapp.service.InternetConnection.Companion.isConnected
 import com.medicat.usecases.IsUserAllowed
+import com.medicat.usecases.ObtainToken
+import com.medicat.usecases.UpdateToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,6 +27,8 @@ class LoginViewModel
     @Inject
     constructor(
         private val isUserAllowed: IsUserAllowed,
+        private val obtainToken: ObtainToken,
+        private val updateToken: UpdateToken,
     ) : ViewModel() {
         sealed class LoginState {
             object Init : LoginState()
@@ -64,6 +69,8 @@ class LoginViewModel
                         val allowed = (response as? NetworkResult.Success<Boolean>)?.data == true
                         Log.d("LoginViewModel", "Verificando allowed: $allowed")
                         if (allowed) {
+                            val token = obtainToken.getToken()
+                            updateToken.invoke(email, token)
                             _loginState.value = LoginState.Successful()
                         } else {
                             Firebase.auth.signOut()
@@ -72,5 +79,48 @@ class LoginViewModel
                     }
                 },
             )
+        }
+
+        fun signInWithEmailPassword(
+            email: String,
+            password: String,
+        ) {
+            _loginState.value = LoginState.Loading
+
+            viewModelScope.launch {
+                try {
+                    val authResult = Firebase.auth.signInWithEmailAndPassword(email, password).await()
+                    val user = authResult.user
+
+                    if (user != null) {
+                        val response = isUserAllowed.invoke(email)
+                        val allowed = (response as? NetworkResult.Success<Boolean>)?.data == true
+
+                        if (allowed) {
+                            val token = obtainToken.getToken()
+                            updateToken.invoke(email, token)
+                            _loginState.value = LoginState.Successful()
+                        } else {
+                            Firebase.auth.signOut()
+                            _loginState.value = LoginState.Error("Usuario no autorizado")
+                        }
+                    } else {
+                        _loginState.value = LoginState.Error("Error en la autenticación")
+                    }
+                } catch (e: Exception) {
+                    Log.e("LoginViewModel", "Error en login con email/password", e)
+
+                    val errorMessage =
+                        when (e) {
+                            is com.google.firebase.auth.FirebaseAuthInvalidUserException ->
+                                "Usuario no encontrado. Contacte al administrador para crear su cuenta."
+                            is com.google.firebase.auth.FirebaseAuthInvalidCredentialsException ->
+                                "Credenciales inválidas. Verifique su email y contraseña."
+                            else -> "Error de conexión. Verifique su internet e intente nuevamente."
+                        }
+
+                    _loginState.value = LoginState.Error(errorMessage)
+                }
+            }
         }
     }

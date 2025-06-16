@@ -17,12 +17,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,6 +50,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -47,6 +63,10 @@ import com.medicat.ucbapp.R
 fun LoginUI(onSuccess: () -> Unit) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    var showEmailLogin by remember { mutableStateOf(false) }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val viewModel: LoginViewModel = hiltViewModel()
@@ -93,7 +113,8 @@ fun LoginUI(onSuccess: () -> Unit) {
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 32.dp),
+                    .padding(horizontal = 32.dp)
+                    .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -111,7 +132,7 @@ fun LoginUI(onSuccess: () -> Unit) {
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 24.dp),
+                modifier = Modifier.padding(bottom = 20.dp),
             )
 
             Image(
@@ -120,7 +141,7 @@ fun LoginUI(onSuccess: () -> Unit) {
                 modifier =
                     Modifier
                         .size(450.dp)
-                        .padding(bottom = 32.dp),
+                        .padding(bottom = 24.dp),
             )
 
             if (isLoading) {
@@ -134,33 +155,153 @@ fun LoginUI(onSuccess: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                 )
             } else {
-                OutlinedButton(
-                    onClick = {
-                        viewModel.signInWithGoogle(context, launcher)
-                    },
-                    modifier =
-                        Modifier
-                            .fillMaxWidth(0.8f)
-                            .height(48.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    border = BorderStroke(1.dp, Color.Gray),
-                    colors =
-                        ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color.White,
-                            contentColor = Color.DarkGray,
-                        ),
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
+                if (showEmailLogin) {
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Correo institucional", color = Color.White) },
+                        placeholder = { Text("usuario@ucb.edu.bo", color = Color.LightGray) },
+                        singleLine = true,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp),
+                        colors =
+                            OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color.White,
+                                unfocusedBorderColor = Color.LightGray,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                cursorColor = Color.White,
+                            ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    )
+
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Contraseña", color = Color.White) },
+                        singleLine = true,
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            val image =
+                                if (passwordVisible) {
+                                    Icons.Filled.Lock
+                                } else {
+                                    Icons.Outlined.Lock
+                                }
+
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(imageVector = image, contentDescription = null, tint = Color.White)
+                            }
+                        },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 24.dp),
+                        colors =
+                            OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color.White,
+                                unfocusedBorderColor = Color.LightGray,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                cursorColor = Color.White,
+                            ),
+                    )
+
+                    Button(
+                        onClick = {
+                            if (email.isNotBlank() && password.isNotBlank()) {
+                                viewModel.signInWithEmailPassword(email, password)
+                            } else {
+                                errorMessage = "Por favor complete todos los campos"
+                            }
+                        },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .padding(bottom = 16.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = Color.DarkGray,
+                            ),
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_google_logo),
-                            contentDescription = "Google icon",
-                            modifier = Modifier.size(24.dp),
+                        Text(text = "Iniciar Sesión", fontWeight = FontWeight.Bold)
+                    }
+
+                    TextButton(
+                        onClick = { showEmailLogin = false },
+                        modifier = Modifier.padding(bottom = 16.dp),
+                    ) {
+                        Text(
+                            text = "← Volver a opciones de login",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodySmall,
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "Continuar con Google")
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = {
+                            viewModel.signInWithGoogle(context, launcher)
+                        },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth(0.8f)
+                                .height(48.dp)
+                                .padding(bottom = 12.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        border = BorderStroke(1.dp, Color.Gray),
+                        colors =
+                            ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color.White,
+                                contentColor = Color.DarkGray,
+                            ),
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_google_logo),
+                                contentDescription = "Google icon",
+                                modifier = Modifier.size(24.dp),
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = "Continuar con Google")
+                        }
+                    }
+
+                    OutlinedButton(
+                        onClick = { showEmailLogin = true },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth(0.8f)
+                                .height(48.dp)
+                                .padding(bottom = 12.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        border = BorderStroke(1.dp, Color.White),
+                        colors =
+                            ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color.Transparent,
+                                contentColor = Color.White,
+                            ),
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = "Email icon",
+                                modifier = Modifier.size(24.dp),
+                                tint = Color.White,
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = "Usar correo y contraseña")
+                        }
                     }
                 }
             }
@@ -173,8 +314,6 @@ fun LoginUI(onSuccess: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
             }
 
             Spacer(modifier = Modifier.height(32.dp))
