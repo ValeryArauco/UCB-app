@@ -6,7 +6,10 @@ import com.medicat.domain.Materia
 import com.medicat.domain.Recuperatorio
 
 interface IUpdateRemoteDataSource {
-    suspend fun updateSaber(saberId: Int): NetworkResult<Boolean>
+    suspend fun updateSaber(
+        saberId: Int,
+        completado: Boolean,
+    ): NetworkResult<Boolean>
 
     suspend fun updateRecuperatorio(recuperatorio: Recuperatorio): NetworkResult<Boolean>
 
@@ -21,6 +24,7 @@ interface IUpdateRemoteDataSource {
         recTomados: Int,
         elemCompletados: Int,
         elemEvaluados: Int,
+        recTotales: Int,
     ): NetworkResult<Boolean>
 
     suspend fun getMateria(id: Int): NetworkResult<Materia>

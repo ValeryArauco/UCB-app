@@ -11,7 +11,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.*
@@ -35,7 +37,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ElementoDetailsUI(
@@ -123,60 +124,126 @@ fun ElementoDetailsUI(
                         }
                         item {
                             SectionCard(title = "Confirmar evaluación") {
-                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                                     if (!evaluacionCompletada) {
-                                        Button(
-                                            onClick = {
-                                                showDatePicker = true
-                                            },
+                                        Card(
                                             modifier = Modifier.fillMaxWidth(),
                                             colors =
-                                                ButtonDefaults.buttonColors(
-                                                    containerColor = MaterialTheme.colorScheme.primary,
+                                                CardDefaults.cardColors(
+                                                    containerColor = Color(0xFFF3F4F6),
                                                 ),
+                                            border = BorderStroke(2.dp, Color(0xFFE5E7EB)),
+                                            shape = RoundedCornerShape(12.dp),
                                         ) {
-                                            Icon(Icons.Default.CheckCircle, contentDescription = null)
-                                            Spacer(Modifier.width(8.dp))
-                                            Text("Marcar como evaluado")
+                                            Column(
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .clickable { showDatePicker = true }
+                                                        .padding(20.dp),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.CheckCircle,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(32.dp),
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                )
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                Text(
+                                                    text = "Marcar como evaluado",
+                                                    fontSize = 16.sp,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                )
+                                                Text(
+                                                    text = "Toca para seleccionar fecha",
+                                                    fontSize = 12.sp,
+                                                    color = Color(0xFF6B7280),
+                                                    modifier = Modifier.padding(top = 2.dp),
+                                                )
+                                            }
                                         }
                                     } else {
-                                        Row(
-                                            modifier =
-                                                Modifier
-                                                    .fillMaxWidth()
-                                                    .background(
-                                                        Color(0xFFE8F5E8),
-                                                        RoundedCornerShape(8.dp),
-                                                    ).padding(12.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
+                                        Card(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            colors =
+                                                CardDefaults.cardColors(
+                                                    containerColor = Color(0xFFE8F5E8),
+                                                ),
+                                            shape = RoundedCornerShape(12.dp),
                                         ) {
-                                            Column {
-                                                Text(
-                                                    "Evaluado",
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = Color(0xFF2E7D32),
-                                                )
-                                                Text(
-                                                    "Fecha: $evaluacionFecha",
-                                                    fontSize = 12.sp,
-                                                    color = Color(0xFF558B2F),
-                                                )
-                                            }
-                                            Spacer(modifier = Modifier.weight(1f))
-
-                                            TextButton(onClick = {
-                                                showDatePicker = true
-                                            }) {
-                                                Text("Cambiar", fontSize = 12.sp)
-                                            }
-                                            TextButton(
-                                                onClick = { elementoDetailsViewModel.setEvaluacionCompletada(false) },
+                                            Column(
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(20.dp),
                                             ) {
-                                                Text(
-                                                    "Deshacer",
-                                                    fontSize = 12.sp,
-                                                    color = Color(0xFF757575),
-                                                )
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.CheckCircle,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(28.dp),
+                                                        tint = Color(0xFF4CAF50),
+                                                    )
+                                                    Spacer(modifier = Modifier.width(12.dp))
+                                                    Column(modifier = Modifier.weight(1f)) {
+                                                        Text(
+                                                            text = "Evaluación completada",
+                                                            fontSize = 16.sp,
+                                                            fontWeight = FontWeight.SemiBold,
+                                                            color = Color(0xFF2E7D32),
+                                                        )
+                                                        Text(
+                                                            text = "Fecha: ${formatDateForDisplay(evaluacionFecha)}",
+                                                            fontSize = 13.sp,
+                                                            color = Color(0xFF2E7D32),
+                                                            modifier = Modifier.padding(top = 2.dp),
+                                                        )
+                                                    }
+                                                }
+
+                                                Spacer(modifier = Modifier.height(12.dp))
+
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.End,
+                                                ) {
+                                                    TextButton(
+                                                        onClick = { showDatePicker = true },
+                                                        colors =
+                                                            ButtonDefaults.textButtonColors(
+                                                                contentColor = Color(0xFF059669),
+                                                            ),
+                                                    ) {
+                                                        Icon(
+                                                            Icons.Default.Edit,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(14.dp),
+                                                        )
+                                                        Spacer(modifier = Modifier.width(4.dp))
+                                                        Text("Cambiar fecha", fontSize = 12.sp)
+                                                    }
+
+                                                    TextButton(
+                                                        onClick = { elementoDetailsViewModel.setEvaluacionCompletada(false) },
+                                                        colors =
+                                                            ButtonDefaults.textButtonColors(
+                                                                contentColor = Color(0xFF6B7280),
+                                                            ),
+                                                    ) {
+                                                        Icon(
+                                                            Icons.Default.Close,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(14.dp),
+                                                        )
+                                                        Spacer(modifier = Modifier.width(4.dp))
+                                                        Text("Deshacer", fontSize = 12.sp)
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -295,7 +362,7 @@ fun ElementoDetailsUI(
                                 shape = RoundedCornerShape(18.dp),
                             ) {
                                 Text(
-                                    text = "Completar elemento",
+                                    text = "Guardar Cambios",
                                     color = Color.White,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium,
@@ -351,7 +418,7 @@ fun ConfirmarRegistroDialog(
         text = {
             Column {
                 Text(
-                    text = "Escribe \"Confirmar\" para guardar los cambios de forma permanente. Ten en cuenta que no podrás modificarlos después.",
+                    text = "Escribe \"Confirmar\" para guardar los cambios. La información registrada será visible en tu progreso y se incluirá en los reportes para la administración.",
                     modifier = Modifier.padding(bottom = 16.dp),
                 )
 
@@ -369,7 +436,7 @@ fun ConfirmarRegistroDialog(
                     singleLine = true,
                     colors =
                         OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF1976D2),
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
                         ),
                 )
@@ -402,7 +469,7 @@ fun ConfirmarRegistroDialog(
                         isProcessing = true
                         scope.launch {
                             try {
-                                elementoDetailsViewModel.completarElemento().join()
+                                elementoDetailsViewModel.guardarCambios().join()
 
                                 isProcessing = false
                                 onConfirmation()
@@ -528,7 +595,7 @@ fun DateSelector(
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = fecha,
+            text = formatDateForDisplay(fecha),
             fontSize = 14.sp,
             color = Color.Black,
         )
@@ -541,6 +608,7 @@ fun DateSelector(
                 TextButton(
                     onClick = {
                         val selectedDateMillis = datePickerState.selectedDateMillis
+
                         if (selectedDateMillis != null) {
                             val selectedDate = Date(selectedDateMillis)
                             val formattedDate = formatDateToString(selectedDate)
@@ -566,8 +634,41 @@ fun DateSelector(
 }
 
 fun formatDateToString(date: Date): String {
-    val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     return formatter.format(date)
+}
+
+fun formatDateForDisplay(dateString: String): String {
+    if (dateString.isEmpty()) return ""
+
+    try {
+        val possibleFormats =
+            listOf(
+                "dd/MM/yyyy",
+                "dd-MM-yyyy",
+                "yyyy-MM-dd",
+                "yyyy-MM-dd'T'HH:mm:ss",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                "yyyy-MM-dd HH:mm:ss",
+            )
+
+        for (format in possibleFormats) {
+            try {
+                val inputFormatter = SimpleDateFormat(format, Locale.getDefault())
+                val date = inputFormatter.parse(dateString)
+                if (date != null) {
+                    val outputFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    return outputFormatter.format(date)
+                }
+            } catch (e: Exception) {
+                continue
+            }
+        }
+
+        return dateString
+    } catch (e: Exception) {
+        return dateString
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -678,14 +779,14 @@ fun RecuperatorioCard(
                         } else {
                             Row {
                                 Text(
-                                    "Realizado - ",
+                                    "Realizado: ",
                                     fontSize = 12.sp,
                                     color = Color(0xFF2E7D32),
                                     fontWeight = FontWeight.Medium,
                                 )
 
                                 Text(
-                                    "Fecha: ${recuperatorio.fechaEvaluado}",
+                                    formatDateForDisplay(recuperatorio.fechaEvaluado ?: ""),
                                     fontSize = 12.sp,
                                     color = Color(0xFF558B2F),
                                 )

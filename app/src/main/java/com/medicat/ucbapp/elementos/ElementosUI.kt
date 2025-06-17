@@ -51,9 +51,6 @@ fun ElementosUI(
 ) {
     LaunchedEffect(Unit) {
         elementosViewModel.loadElementos(materia)
-    }
-
-    LaunchedEffect(materia.elemCompletados, materia.elemEvaluados, materia.recTomados) {
         elementosViewModel.refreshMateriaData(materia)
     }
     val elementosState by elementosViewModel.uiState.collectAsState()
@@ -413,35 +410,35 @@ fun CompetencyCard(
                     }
                 }
 
-                if (element.completado) {
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = "COMPLETADO",
-                            fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Medium,
-                            letterSpacing = 0.5.sp,
-                        )
-                        Text(
-                            text = formatearFecha(element.fechaRegistro ?: ""),
-                            fontSize = 12.sp,
-                            color = Color(0xFF333333),
-                            fontWeight = FontWeight.Medium,
-                        )
-                    }
-                } else {
-                    Button(
-                        onClick = { onClick(element) },
-                        shape = RoundedCornerShape(24.dp),
-                        colors =
-                            ButtonDefaults.outlinedButtonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = Color.White,
-                            ),
-                    ) {
-                        Text(text = "Registrar")
-                    }
+//                if (element.completado) {
+//                    Column(horizontalAlignment = Alignment.End) {
+//                        Text(
+//                            text = "COMPLETADO",
+//                            fontSize = 10.sp,
+//                            color = MaterialTheme.colorScheme.primary,
+//                            fontWeight = FontWeight.Medium,
+//                            letterSpacing = 0.5.sp,
+//                        )
+//                        Text(
+//                            text = formatearFecha(element.fechaRegistro ?: ""),
+//                            fontSize = 12.sp,
+//                            color = Color(0xFF333333),
+//                            fontWeight = FontWeight.Medium,
+//                        )
+//                    }
+//                } else {
+                Button(
+                    onClick = { onClick(element) },
+                    shape = RoundedCornerShape(24.dp),
+                    colors =
+                        ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = Color.White,
+                        ),
+                ) {
+                    Text(text = "Registrar")
                 }
+                // }
             }
         }
     }

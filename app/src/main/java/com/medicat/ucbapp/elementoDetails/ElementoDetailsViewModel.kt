@@ -20,8 +20,6 @@ import com.medicat.usecases.UpdateSaber
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -31,7 +29,6 @@ import java.time.ZoneId
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
-import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class ElementoDetailsViewModel
@@ -52,12 +49,21 @@ class ElementoDetailsViewModel
             class Loaded(
                 val saberes: List<Saber>,
                 val recuperatorios: List<Recuperatorio>,
+                val progreso: ProgresoElemento,
             ) : UIState()
 
             class Error(
                 val message: String,
             ) : UIState()
         }
+
+        data class ProgresoElemento(
+            val tieneSaberes: Boolean,
+            val estaEvaluado: Boolean,
+            val tieneRecuperatorios: Boolean,
+            val puedeCompletarse: Boolean,
+            val hayPendientes: Boolean,
+        )
 
         private val _uiState = MutableStateFlow<UIState>(UIState.Loading)
         val uiState: StateFlow<UIState> = _uiState
@@ -74,10 +80,19 @@ class ElementoDetailsViewModel
         private val _comentario = MutableStateFlow("")
         val comentario: StateFlow<String> = _comentario
 
+        private val _isGuardando = MutableStateFlow(false)
+        val isGuardando: StateFlow<Boolean> = _isGuardando
+
         private var currentSaberes: List<Saber> = emptyList()
         var currentRecuperatorios: MutableList<Recuperatorio> = mutableListOf()
 
+        private var originalSaberes: List<Saber> = emptyList()
         private var originalRecuperatorios: List<Recuperatorio> = emptyList()
+        private var originalSaberesSeleccionados: Set<Int> = emptySet()
+        private var originalEvaluacionCompletada: Boolean = false
+        private var originalComentario: String = ""
+        private var originalElementoCompletado: Boolean = false
+
         private var currentElemento: Elemento? = null
 
         fun loadData(elemento: Elemento) {
@@ -98,18 +113,21 @@ class ElementoDetailsViewModel
                         saberesResponse is NetworkResult.Success && recuperatoriosResponse is NetworkResult.Success -> {
                             currentSaberes = saberesResponse.data
                             currentRecuperatorios = recuperatoriosResponse.data.toMutableList()
+
+                            originalSaberes = saberesResponse.data
                             originalRecuperatorios = recuperatoriosResponse.data
+                            originalEvaluacionCompletada = elemento.evaluado
+                            originalComentario = elemento.comentario ?: ""
+                            originalElementoCompletado = elemento.completado
 
                             _evaluacionCompletada.value = elemento.evaluado
+                            _comentario.value = elemento.comentario ?: ""
 
                             val saberesCompletados = currentSaberes.filter { it.completado }.map { it.id }.toSet()
                             _saberesSeleccionados.value = saberesCompletados
+                            originalSaberesSeleccionados = saberesCompletados
 
-                            _uiState.value =
-                                UIState.Loaded(
-                                    saberes = currentSaberes,
-                                    recuperatorios = currentRecuperatorios,
-                                )
+                            updateUIState()
                         }
                     }
                 } catch (e: Exception) {
@@ -118,12 +136,373 @@ class ElementoDetailsViewModel
             }
         }
 
+        private fun updateUIState() {
+            val progreso = calcularProgreso()
+            _uiState.value =
+                UIState.Loaded(
+                    saberes = currentSaberes,
+                    recuperatorios = currentRecuperatorios.toList(),
+                    progreso = progreso,
+                )
+        }
+
+        private fun calcularProgreso(): ProgresoElemento {
+            val tieneSaberes = _saberesSeleccionados.value.isNotEmpty()
+            val estaEvaluado = _evaluacionCompletada.value
+            val tieneRecuperatorios = currentRecuperatorios.any { it.completado }
+            val puedeCompletarse = tieneSaberes && estaEvaluado && tieneRecuperatorios
+
+            val cambiosEnSaberes = _saberesSeleccionados.value != originalSaberesSeleccionados
+            val cambiosEnEvaluacion =
+                _evaluacionCompletada.value != originalEvaluacionCompletada ||
+                    _comentario.value != originalComentario
+            val cambiosEnRecuperatorios = tieneRecuperatoriosPendientes()
+
+            val hayPendientes = cambiosEnSaberes || cambiosEnEvaluacion || cambiosEnRecuperatorios
+
+            return ProgresoElemento(
+                tieneSaberes = tieneSaberes,
+                estaEvaluado = estaEvaluado,
+                tieneRecuperatorios = tieneRecuperatorios,
+                puedeCompletarse = puedeCompletarse,
+                hayPendientes = hayPendientes,
+            )
+        }
+
+        private fun tieneRecuperatoriosPendientes(): Boolean {
+            if (currentRecuperatorios.any { it.id == 0 }) return true
+
+            if (originalRecuperatorios.any { original ->
+                    currentRecuperatorios.none { it.id == original.id }
+                }
+            ) {
+                return true
+            }
+
+            return currentRecuperatorios.any { current ->
+                if (current.id != 0) {
+                    val original = originalRecuperatorios.find { it.id == current.id }
+                    original != null &&
+                        (
+                            original.completado != current.completado ||
+                                original.fechaEvaluado != current.fechaEvaluado
+                        )
+                } else {
+                    false
+                }
+            }
+        }
+
+        @RequiresApi(Build.VERSION_CODES.O)
+        fun guardarCambios(): Job {
+            return viewModelScope.launch(Dispatchers.IO) {
+                _isGuardando.value = true
+                try {
+                    val elemento =
+                        currentElemento ?: run {
+                            _uiState.value = UIState.Error("No hay elemento cargado")
+                            return@launch
+                        }
+
+                    if (_saberesSeleccionados.value != originalSaberesSeleccionados) {
+                        Log.d("ViewModel", "Guardando cambios en saberes...")
+                        guardarSaberesInterno()
+                    }
+
+                    if (_evaluacionCompletada.value != originalEvaluacionCompletada ||
+                        _comentario.value != originalComentario
+                    ) {
+                        Log.d("ViewModel", "Guardando cambios en evaluación...")
+                        guardarEvaluacionInterno(elemento)
+                    }
+
+                    if (tieneRecuperatoriosPendientes()) {
+                        Log.d("ViewModel", "Guardando cambios en recuperatorios...")
+                        guardarRecuperatoriosInterno(elemento)
+                    }
+
+                    actualizarEstadoCompletado(elemento)
+
+                    actualizarEstadosOriginales()
+
+                    updateUIState()
+                    Log.d("ViewModel", "Todos los cambios guardados exitosamente")
+                } catch (e: Exception) {
+                    Log.e("ViewModel", "Error al guardar cambios: ${e.message}")
+                    _uiState.value = UIState.Error("Error al guardar: ${e.message}")
+                } finally {
+                    _isGuardando.value = false
+                }
+            }
+        }
+
+        private suspend fun guardarSaberesInterno() {
+            val elemento = currentElemento ?: throw Exception("No hay elemento cargado")
+            val saberesAActualizar = getSaberesModificados()
+
+            for ((saberId, completado) in saberesAActualizar) {
+                when (val result = updateSaber.invoke(saberId, completado)) {
+                    is NetworkResult.Success -> {
+                        Log.d("ViewModel", "Saber $saberId actualizado: completado=$completado")
+                    }
+                    is NetworkResult.Error -> {
+                        throw Exception("Error al actualizar saber $saberId: ${result.error}")
+                    }
+                }
+            }
+
+            currentSaberes =
+                currentSaberes.map { saber ->
+                    saber.copy(completado = _saberesSeleccionados.value.contains(saber.id))
+                }
+
+            val elementoActualizado =
+                elemento.copy(
+                    saberesCompletados = _saberesSeleccionados.value.size,
+                )
+
+            when (val result = updateElemento.invoke(elementoActualizado)) {
+                is NetworkResult.Success -> {
+                    currentElemento = elementoActualizado
+                    Log.d("ViewModel", "Elemento actualizado con saberesCompletados: ${_saberesSeleccionados.value.size}")
+                }
+                is NetworkResult.Error -> {
+                    throw Exception("Error al actualizar saberesCompletados: ${result.error}")
+                }
+            }
+        }
+
+        @RequiresApi(Build.VERSION_CODES.O)
+        private suspend fun guardarEvaluacionInterno(elemento: Elemento) {
+            val elementoActualizado =
+                elemento.copy(
+                    evaluado = _evaluacionCompletada.value,
+                    comentario = _comentario.value,
+                    fechaEvaluado = if (_evaluacionCompletada.value) convertirFecha(_evaluacionFecha.value) else null,
+                )
+
+            when (val result = updateElemento.invoke(elementoActualizado)) {
+                is NetworkResult.Success -> {
+                    currentElemento = elementoActualizado
+
+                    val cambioEvaluacion = _evaluacionCompletada.value != originalEvaluacionCompletada
+                    if (cambioEvaluacion) {
+                        val incrementoEvaluados = if (_evaluacionCompletada.value) 1 else -1
+                        Log.d("ViewModel", "Estado evaluación cambió de $originalEvaluacionCompletada a ${_evaluacionCompletada.value}")
+                        Log.d("ViewModel", "Actualizando elementos evaluados en materia: $incrementoEvaluados")
+
+                        updateMateria.invoke(
+                            elemento.materiaId.toInt(),
+                            0,
+                            0,
+                            incrementoEvaluados,
+                            0,
+                        )
+                    }
+                    Log.d("ViewModel", "Evaluación guardada exitosamente")
+                }
+                is NetworkResult.Error -> {
+                    throw Exception("Error al guardar evaluación: ${result.error}")
+                }
+            }
+        }
+
+        private suspend fun guardarRecuperatoriosInterno(elemento: Elemento) {
+            var recuperatoriosCreados = 0
+            var recuperatoriosEliminados = 0
+            var cambioEnRecuperatoriosTomados = 0
+
+            val recuperatoriosNuevos = getRecuperatoriosNuevos()
+            for (recuperatorio in recuperatoriosNuevos) {
+                when (val result = createRecuperatorio.invoke(recuperatorio)) {
+                    is NetworkResult.Success -> {
+                        recuperatoriosCreados++
+
+                        if (recuperatorio.completado) {
+                            cambioEnRecuperatoriosTomados++
+                        }
+                        Log.d("ViewModel", "Recuperatorio creado (completado: ${recuperatorio.completado})")
+                    }
+                    is NetworkResult.Error -> {
+                        throw Exception("Error al crear recuperatorio: ${result.error}")
+                    }
+                }
+            }
+
+            val recuperatoriosModificados = getRecuperatoriosModificados()
+            for (recuperatorio in recuperatoriosModificados) {
+                val original = originalRecuperatorios.find { it.id == recuperatorio.id }
+
+                if (original != null) {
+                    when {
+                        !original.completado && recuperatorio.completado -> {
+                            cambioEnRecuperatoriosTomados++
+                            Log.d("ViewModel", "Recuperatorio ${recuperatorio.id} se completó (+1 tomado)")
+                        }
+                        original.completado && !recuperatorio.completado -> {
+                            cambioEnRecuperatoriosTomados--
+                            Log.d("ViewModel", "Recuperatorio ${recuperatorio.id} se descompletó (-1 tomado)")
+                        }
+                    }
+                }
+
+                when (val result = updateRecuperatorio.invoke(recuperatorio)) {
+                    is NetworkResult.Success -> {
+                        Log.d("ViewModel", "Recuperatorio ${recuperatorio.id} actualizado")
+                    }
+                    is NetworkResult.Error -> {
+                        throw Exception("Error al actualizar recuperatorio: ${result.error}")
+                    }
+                }
+            }
+
+            val recuperatoriosEliminados_lista = getRecuperatoriosEliminados()
+            for (recuperatorio in recuperatoriosEliminados_lista) {
+                when (val result = deleteRecuperatorio.invoke(recuperatorio.id)) {
+                    is NetworkResult.Success -> {
+                        recuperatoriosEliminados++
+
+                        if (recuperatorio.completado) {
+                            cambioEnRecuperatoriosTomados--
+                        }
+                        Log.d("ViewModel", "Recuperatorio ${recuperatorio.id} eliminado (completado: ${recuperatorio.completado})")
+                    }
+                    is NetworkResult.Error -> {
+                        throw Exception("Error al eliminar recuperatorio: ${result.error}")
+                    }
+                }
+            }
+
+            val cambioRecuperatoriosTotales = recuperatoriosCreados - recuperatoriosEliminados
+
+            if (cambioRecuperatoriosTotales != 0 || cambioEnRecuperatoriosTomados != 0) {
+                Log.d("ViewModel", "Actualizando materia - Totales: $cambioRecuperatoriosTotales, Tomados: $cambioEnRecuperatoriosTomados")
+
+                updateMateria.invoke(
+                    elemento.materiaId.toInt(),
+                    cambioEnRecuperatoriosTomados,
+                    0,
+                    0,
+                    cambioRecuperatoriosTotales,
+                )
+            }
+        }
+
+        @RequiresApi(Build.VERSION_CODES.O)
+        private suspend fun actualizarEstadoCompletado(elemento: Elemento) {
+            val elementoActual = currentElemento ?: elemento
+
+            val progreso = calcularProgreso()
+            val deberiaEstarCompletado = progreso.puedeCompletarse
+
+            Log.d("ViewModel", "=== ACTUALIZANDO ESTADO COMPLETADO ===")
+            Log.d("ViewModel", "Estado actual completado: ${elementoActual.completado}")
+            Log.d("ViewModel", "Debería estar completado: $deberiaEstarCompletado")
+            Log.d("ViewModel", "Original completado: $originalElementoCompletado")
+
+            if (deberiaEstarCompletado != elementoActual.completado) {
+                val elementoActualizado =
+                    elementoActual.copy(
+                        completado = deberiaEstarCompletado,
+                        fechaRegistro =
+                            if (deberiaEstarCompletado) {
+                                LocalDate
+                                    .now(
+                                        ZoneId.of("America/La_Paz"),
+                                    ).toString()
+                            } else {
+                                elementoActual.fechaRegistro
+                            },
+                        saberesCompletados = _saberesSeleccionados.value.size,
+                    )
+
+                when (val result = updateElemento.invoke(elementoActualizado)) {
+                    is NetworkResult.Success -> {
+                        currentElemento = elementoActualizado
+
+                        val incrementoCompletados =
+                            when {
+                                deberiaEstarCompletado && !elementoActual.completado -> 1
+                                !deberiaEstarCompletado && elementoActual.completado -> -1
+                                else -> 0
+                            }
+
+                        if (incrementoCompletados != 0) {
+                            Log.d("ViewModel", "Actualizando elementos completados en materia: $incrementoCompletados")
+                            updateMateria.invoke(
+                                elemento.materiaId.toInt(),
+                                0,
+                                incrementoCompletados,
+                                0,
+                                0,
+                            )
+                        }
+
+                        Log.d("ViewModel", "Estado de completado actualizado: ${elementoActual.completado} -> $deberiaEstarCompletado")
+                    }
+                    is NetworkResult.Error -> {
+                        Log.w("ViewModel", "Error al actualizar estado completado (no crítico): ${result.error}")
+                    }
+                }
+            } else {
+                Log.d("ViewModel", "No hay cambios en el estado completado")
+            }
+        }
+
+        private fun actualizarEstadosOriginales() {
+            originalSaberesSeleccionados = _saberesSeleccionados.value
+            originalSaberes = currentSaberes
+            originalRecuperatorios = currentRecuperatorios.toList()
+            originalEvaluacionCompletada = _evaluacionCompletada.value
+            originalComentario = _comentario.value
+
+            originalElementoCompletado = currentElemento?.completado ?: false
+        }
+
+        private fun getSaberesModificados(): List<Pair<Int, Boolean>> {
+            val cambios = mutableListOf<Pair<Int, Boolean>>()
+
+            val nuevosSeleccionados = _saberesSeleccionados.value - originalSaberesSeleccionados
+            cambios.addAll(nuevosSeleccionados.map { it to true })
+
+            val deseleccionados = originalSaberesSeleccionados - _saberesSeleccionados.value
+            cambios.addAll(deseleccionados.map { it to false })
+
+            return cambios
+        }
+
+        private fun getRecuperatoriosModificados(): List<Recuperatorio> {
+            val modificados = mutableListOf<Recuperatorio>()
+
+            currentRecuperatorios.forEach { current ->
+                if (current.id != 0) {
+                    val original = originalRecuperatorios.find { it.id == current.id }
+                    if (original != null &&
+                        (
+                            original.completado != current.completado ||
+                                original.fechaEvaluado != current.fechaEvaluado
+                        )
+                    ) {
+                        modificados.add(current)
+                    }
+                }
+            }
+
+            return modificados
+        }
+
+        private fun getRecuperatoriosNuevos(): List<Recuperatorio> = currentRecuperatorios.filter { it.id == 0 }
+
+        private fun getRecuperatoriosEliminados(): List<Recuperatorio> =
+            originalRecuperatorios.filter { original ->
+                currentRecuperatorios.none { it.id == original.id }
+            }
+
         fun updateRecuperatorioLocal(
             index: Int,
             completado: Boolean? = null,
             fecha: String? = null,
         ) {
-            Log.d("ViewModel", "Fecha: $fecha")
             val fechaFormateada = fecha?.let { convertirFecha(it) }
             if (index < currentRecuperatorios.size) {
                 val recuperatorio = currentRecuperatorios[index]
@@ -132,19 +511,9 @@ class ElementoDetailsViewModel
                         completado = completado ?: recuperatorio.completado,
                         fechaEvaluado = fechaFormateada ?: recuperatorio.fechaEvaluado,
                     )
-
-                _uiState.value =
-                    UIState.Loaded(
-                        saberes = currentSaberes,
-                        recuperatorios = currentRecuperatorios.toList(),
-                    )
+                updateUIState()
             }
         }
-
-        fun convertirFecha(fechaUI: String): String =
-            fechaUI.split("-").let { partes ->
-                if (partes.size != 3) fechaUI else "${partes[2]}-${partes[1]}-${partes[0]}"
-            }
 
         fun agregarRecuperatorio(elemento: Elemento) {
             val nuevoRecuperatorio =
@@ -156,210 +525,14 @@ class ElementoDetailsViewModel
                 )
 
             currentRecuperatorios.add(nuevoRecuperatorio)
-
-            _uiState.value =
-                UIState.Loaded(
-                    saberes = currentSaberes,
-                    recuperatorios = currentRecuperatorios.toList(),
-                )
+            updateUIState()
         }
 
         fun eliminarRecuperatorio(index: Int) {
             if (currentRecuperatorios.size > 1 && index < currentRecuperatorios.size) {
                 currentRecuperatorios.removeAt(index)
-
-                _uiState.value =
-                    UIState.Loaded(
-                        saberes = currentSaberes,
-                        recuperatorios = currentRecuperatorios.toList(),
-                    )
+                updateUIState()
             }
-        }
-
-        private fun getRecuperatoriosModificados(): List<Recuperatorio> {
-            val modificados = mutableListOf<Recuperatorio>()
-
-            currentRecuperatorios.forEach { current ->
-                val original = originalRecuperatorios.find { it.id == current.id }
-                if (original != null &&
-                    (
-                        original.completado != current.completado ||
-                            original.fechaEvaluado != current.fechaEvaluado
-                    )
-                ) {
-                    modificados.add(current)
-                }
-            }
-
-            return modificados
-        }
-
-        private fun getRecuperatoriosNuevos(): List<Recuperatorio> = currentRecuperatorios.filter { it.id == 0 }
-
-        private fun getRecuperatoriosTomados(): Int = currentRecuperatorios.count { it.completado == true }
-
-        private fun getSaberesCompletados(): Int = _saberesSeleccionados.value.size
-
-        private fun getRecuperatoriosEliminados(): List<Recuperatorio> =
-            originalRecuperatorios.filter { original ->
-                currentRecuperatorios.none { it.id == original.id }
-            }
-
-        @RequiresApi(Build.VERSION_CODES.O)
-        fun completarElemento(): Job {
-            return viewModelScope.launch(Dispatchers.IO) {
-                try {
-                    val elemento =
-                        currentElemento ?: run {
-                            Log.e("ViewModel", "Elemento actual es null")
-                            return@launch
-                        }
-
-                    val saberIds = _saberesSeleccionados.value.toList()
-
-                    Log.d("ViewModel", "Total saberes seleccionados: ${saberIds.size}")
-                    Log.d("ViewModel", "Saberes a actualizar: $saberIds")
-
-                    var saberesActualizadosExitosamente = 0
-
-                    for (saberId in saberIds) {
-                        ensureActive()
-
-                        when (val result = updateSaber.invoke(saberId)) {
-                            is NetworkResult.Success -> {
-                                saberesActualizadosExitosamente++
-                                Log.d(
-                                    "ViewModel",
-                                    "Saber $saberId actualizado correctamente ($saberesActualizadosExitosamente/${saberIds.size})",
-                                )
-                            }
-                            is NetworkResult.Error -> {
-                                Log.e("ViewModel", "Error al actualizar el saber $saberId: ${result.error}")
-                                _uiState.value = UIState.Error("Error al actualizar saber $saberId: ${result.error}")
-                                return@launch
-                            }
-                        }
-
-                        delay(100)
-                    }
-
-                    Log.d("ViewModel", "Saberes actualizados exitosamente: $saberesActualizadosExitosamente de ${saberIds.size}")
-
-                    if (saberesActualizadosExitosamente != saberIds.size) {
-                        Log.e("ViewModel", "No todos los saberes se actualizaron correctamente")
-                        _uiState.value = UIState.Error("Solo se actualizaron $saberesActualizadosExitosamente de ${saberIds.size} saberes")
-                        return@launch
-                    }
-
-                    ensureActive()
-
-                    val recuperatoriosNuevos = getRecuperatoriosNuevos()
-                    for (recuperatorio in recuperatoriosNuevos) {
-                        Log.d("ViewModel", "Creando recuperatorio: $recuperatorio")
-                        when (val result = createRecuperatorio.invoke(recuperatorio)) {
-                            is NetworkResult.Success -> {
-                                Log.d("ViewModel", "Recuperatorio creado correctamente")
-                            }
-                            is NetworkResult.Error -> {
-                                Log.e("ViewModel", "Error al crear recuperatorio: ${result.error}")
-                                _uiState.value = UIState.Error("Error al crear recuperatorio: ${result.error}")
-                                return@launch
-                            }
-                        }
-                    }
-
-                    val recuperatoriosModificados = getRecuperatoriosModificados()
-                    for (recuperatorio in recuperatoriosModificados) {
-                        when (val result = updateRecuperatorio.invoke(recuperatorio)) {
-                            is NetworkResult.Success -> {
-                                Log.d("ViewModel", "Recuperatorio ${recuperatorio.id} actualizado correctamente")
-                            }
-                            is NetworkResult.Error -> {
-                                Log.e("ViewModel", "Error al actualizar recuperatorio ${recuperatorio.id}: ${result.error}")
-                                _uiState.value = UIState.Error("Error al actualizar recuperatorio: ${result.error}")
-                                return@launch
-                            }
-                        }
-                    }
-
-                    val recuperatoriosEliminados = getRecuperatoriosEliminados()
-                    for (recuperatorio in recuperatoriosEliminados) {
-                        when (val result = deleteRecuperatorio.invoke(recuperatorio.id)) {
-                            is NetworkResult.Success -> {
-                                Log.d("ViewModel", "Recuperatorio ${recuperatorio.id} eliminado")
-                            }
-                            is NetworkResult.Error -> {
-                                Log.e("ViewModel", "Error al eliminar recuperatorio: ${result.error}")
-                                _uiState.value = UIState.Error("Error al eliminar recuperatorio: ${result.error}")
-                                return@launch
-                            }
-                        }
-                    }
-
-                    val elementoActualizado =
-                        elemento.copy(
-                            evaluado = _evaluacionCompletada.value,
-                            comentario = _comentario.value,
-                            fechaEvaluado = if (_evaluacionCompletada.value) convertirFecha(_evaluacionFecha.value) else null,
-                            completado = true,
-                            fechaRegistro = LocalDate.now(ZoneId.of("America/La_Paz")).toString(),
-                            saberesCompletados = saberIds.size,
-                        )
-
-                    when (val result = updateElemento.invoke(elementoActualizado)) {
-                        is NetworkResult.Success -> {
-                            Log.d("ViewModel", "Elemento completado exitosamente")
-                        }
-                        is NetworkResult.Error -> {
-                            Log.e("ViewModel", "Error al completar elemento: ${result.error}")
-                            _uiState.value = UIState.Error("Error al completar elemento: ${result.error}")
-                            return@launch
-                        }
-                    }
-
-                    val nuevosRecuperatoriosTomados =
-                        currentRecuperatorios.count {
-                            it.completado && originalRecuperatorios.none { orig -> orig.id == it.id && orig.completado }
-                        }
-
-                    val elementosCompletadosIncremento = 1
-                    val elementosEvaluadosIncremento = if (_evaluacionCompletada.value && !elemento.evaluado) 1 else 0
-
-                    when (
-                        val result =
-                            updateMateria.invoke(
-                                elemento.materiaId.toInt(),
-                                nuevosRecuperatoriosTomados,
-                                elementosCompletadosIncremento,
-                                elementosEvaluadosIncremento,
-                            )
-                    ) {
-                        is NetworkResult.Success -> {
-                            Log.d("ViewModel", "Materia actualizada exitosamente")
-                        }
-                        is NetworkResult.Error -> {
-                            Log.e("ViewModel", "Error al actualizar Materia: ${result.error}")
-                            _uiState.value = UIState.Error("Error al actualizar materia: ${result.error}")
-                            return@launch
-                        }
-                    }
-                } catch (e: CancellationException) {
-                    Log.w("ViewModel", "Operación cancelada por el usuario")
-                    throw e
-                } catch (e: Exception) {
-                    Log.e("ViewModel", "Error general al completar elemento: ${e.message}")
-                    _uiState.value = UIState.Error("Error general: ${e.message}")
-                }
-            }
-        }
-
-        fun debugSaberesSeleccionados() {
-            val saberes = _saberesSeleccionados.value
-            Log.d("ViewModel", "=== DEBUG SABERES ===")
-            Log.d("ViewModel", "Saberes seleccionados: $saberes")
-            Log.d("ViewModel", "Cantidad: ${saberes.size}")
-            Log.d("ViewModel", "getSaberesCompletados(): ${getSaberesCompletados()}")
-            Log.d("ViewModel", "===================")
         }
 
         fun toggleSaber(
@@ -373,6 +546,7 @@ class ElementoDetailsViewModel
                 currentSelection.remove(saberId)
             }
             _saberesSeleccionados.value = currentSelection
+            updateUIState()
         }
 
         fun setEvaluacionFecha(fecha: String) {
@@ -381,14 +555,37 @@ class ElementoDetailsViewModel
 
         fun setEvaluacionCompletada(completada: Boolean) {
             _evaluacionCompletada.value = completada
+            updateUIState()
         }
 
         fun setComentario(comentario: String) {
             _comentario.value = comentario
         }
 
+        fun convertirFecha(fechaUI: String): String =
+            fechaUI.split("-").let { partes ->
+                if (partes.size != 3) fechaUI else "${partes[2]}-${partes[1]}-${partes[0]}"
+            }
+
         private fun getCurrentDate(): String {
             val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             return dateFormat.format(Date())
+        }
+
+        fun debugProgreso() {
+            val progreso = calcularProgreso()
+            Log.d("ViewModel", "=== DEBUG PROGRESO ===")
+            Log.d("ViewModel", "Tiene saberes: ${progreso.tieneSaberes}")
+            Log.d("ViewModel", "Está evaluado: ${progreso.estaEvaluado}")
+            Log.d("ViewModel", "Tiene recuperatorios: ${progreso.tieneRecuperatorios}")
+            Log.d("ViewModel", "Puede completarse: ${progreso.puedeCompletarse}")
+            Log.d("ViewModel", "Hay pendientes: ${progreso.hayPendientes}")
+            Log.d("ViewModel", "Saberes seleccionados: ${_saberesSeleccionados.value}")
+            Log.d("ViewModel", "Saberes originales: $originalSaberesSeleccionados")
+            Log.d("ViewModel", "Evaluación actual: ${_evaluacionCompletada.value}")
+            Log.d("ViewModel", "Evaluación original: $originalEvaluacionCompletada")
+            Log.d("ViewModel", "Elemento completado actual: ${currentElemento?.completado}")
+            Log.d("ViewModel", "Elemento completado original: $originalElementoCompletado")
+            Log.d("ViewModel", "=====================")
         }
     }

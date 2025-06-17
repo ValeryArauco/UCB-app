@@ -10,6 +10,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -20,7 +22,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -31,6 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.medicat.domain.Elemento
 import com.medicat.domain.Materia
+import com.medicat.ucbapp.MainActivity
 import com.medicat.ucbapp.elementoDetails.ElementoDetailsUI
 import com.medicat.ucbapp.login.LoginUI
 import com.medicat.ucbapp.materias.MateriasUI
@@ -63,12 +68,15 @@ fun AppNavigation() {
                 Screens.PerfilScreen.route,
             )
 
+    val unreadCount by MainActivity.unreadNotificationsCount
+
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
                 BottomNavigationBar(
                     navController = navController,
                     currentRoute = currentRoute,
+                    unreadNotificationsCount = unreadCount,
                 )
             }
         },
@@ -135,7 +143,7 @@ fun AppNavigation() {
                 NotificacionesUI()
             }
             composable(Screens.PerfilScreen.route) {
-                PerfilUI()
+                PerfilUI(onNavigateToLogin = { navController.navigate(Screens.LoginScreen.route) })
             }
         }
     }
@@ -146,6 +154,7 @@ fun AppNavigation() {
 fun BottomNavigationBar(
     navController: NavController,
     currentRoute: String?,
+    unreadNotificationsCount: Int = 0,
 ) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.primary,
@@ -184,10 +193,27 @@ fun BottomNavigationBar(
 
         NavigationBarItem(
             icon = {
-                Icon(
-                    imageVector = Icons.Filled.Notifications,
-                    contentDescription = "Notificaciones",
-                )
+                BadgedBox(
+                    badge = {
+                        if (unreadNotificationsCount > 0) {
+                            Badge(
+                                containerColor = Color.Red,
+                                contentColor = Color.White,
+                            ) {
+                                Text(
+                                    text = if (unreadNotificationsCount > 99) "99+" else unreadNotificationsCount.toString(),
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Notifications,
+                        contentDescription = "Notificaciones",
+                    )
+                }
             },
             label = { Text("Notificaciones") },
             selected = currentRoute == Screens.NotificationsScreen.route,
@@ -201,6 +227,7 @@ fun BottomNavigationBar(
                         restoreState = true
                     }
                 }
+                MainActivity.unreadNotificationsCount.value = 0
             },
             colors =
                 NavigationBarItemDefaults.colors(

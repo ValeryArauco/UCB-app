@@ -28,6 +28,7 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,84 +55,89 @@ fun NotificacionesUI(viewModel: NotificacionesViewModel = hiltViewModel()) {
     LaunchedEffect(Unit) {
         viewModel.loadNotificaciones()
     }
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color(0xFFF8F9FA),
+    ) { paddingValues ->
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+        ) {
+            Text(
+                text = "Notificaciones",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp),
+            )
 
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-    ) {
-        Text(
-            text = "Notificaciones",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp),
-        )
-
-        when (val state = uiState) {
-            is NotificacionesViewModel.NotificacionesUIState.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-            is NotificacionesViewModel.NotificacionesUIState.Error -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text(
-                            text = "Error al cargar notificaciones",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                        Text(
-                            text = state.message,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                        Button(
-                            onClick = { viewModel.loadNotificaciones() },
-                            modifier = Modifier.padding(top = 8.dp),
-                        ) {
-                            Text("Reintentar")
-                        }
-                    }
-                }
-            }
-            is NotificacionesViewModel.NotificacionesUIState.Loaded -> {
-                if (state.notificaciones.isEmpty()) {
+            when (val state = uiState) {
+                is NotificacionesViewModel.NotificacionesUIState.Loading -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(
-                            text = "No tienes notificaciones",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.Gray,
-                        )
+                        CircularProgressIndicator()
                     }
-                } else {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                }
+                is NotificacionesViewModel.NotificacionesUIState.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        items(state.notificaciones) { notification ->
-                            NotificationCard(
-                                notification = notification,
-                                onMarkAsRead = { id ->
-                                    // Aquí necesitarás agregar estas funciones al ViewModel
-                                    viewModel.markAsRead(id)
-                                },
-                                onDelete = { id ->
-                                    viewModel.deleteNotification(id)
-                                },
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Text(
+                                text = "Error al cargar notificaciones",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.error,
                             )
+                            Text(
+                                text = state.message,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                            Button(
+                                onClick = { viewModel.loadNotificaciones() },
+                                modifier = Modifier.padding(top = 8.dp),
+                            ) {
+                                Text("Reintentar")
+                            }
+                        }
+                    }
+                }
+                is NotificacionesViewModel.NotificacionesUIState.Loaded -> {
+                    if (state.notificaciones.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = "No tienes notificaciones",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.Gray,
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            items(state.notificaciones) { notification ->
+                                NotificationCard(
+                                    notification = notification,
+                                    onMarkAsRead = { id ->
+                                        // Aquí necesitarás agregar estas funciones al ViewModel
+                                        viewModel.markAsRead(id)
+                                    },
+                                    onDelete = { id ->
+                                        viewModel.deleteNotification(id)
+                                    },
+                                )
+                            }
                         }
                     }
                 }

@@ -8,7 +8,10 @@ import com.medicat.domain.Recuperatorio
 class UpdateRepository(
     private val remoteDataSource: IUpdateRemoteDataSource,
 ) {
-    suspend fun updateSaber(saberId: Int): NetworkResult<Boolean> = this.remoteDataSource.updateSaber(saberId)
+    suspend fun updateSaber(
+        saberId: Int,
+        completado: Boolean,
+    ): NetworkResult<Boolean> = this.remoteDataSource.updateSaber(saberId, completado)
 
     suspend fun updateRecuperatorio(recuperatorio: Recuperatorio): NetworkResult<Boolean> =
         this.remoteDataSource.updateRecuperatorio(
@@ -35,12 +38,14 @@ class UpdateRepository(
         recTomados: Int,
         elemCompletados: Int,
         elemEvaluados: Int,
+        recTotales: Int,
     ): NetworkResult<Boolean> =
         this.remoteDataSource.updateMateria(
             id,
             recTomados,
             elemCompletados,
             elemEvaluados,
+            recTotales,
         )
 
     suspend fun getMateria(id: Int): NetworkResult<Materia> = this.remoteDataSource.getMateria(id)

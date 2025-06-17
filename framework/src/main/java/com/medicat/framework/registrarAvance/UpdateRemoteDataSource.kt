@@ -15,8 +15,11 @@ import com.medicat.framework.service.RetrofitBuilder
 class UpdateRemoteDataSource(
     val retrofitService: RetrofitBuilder,
 ) : IUpdateRemoteDataSource {
-    override suspend fun updateSaber(saberId: Int): NetworkResult<Boolean> {
-        val request = mapOf("completado" to true)
+    override suspend fun updateSaber(
+        saberId: Int,
+        completado: Boolean,
+    ): NetworkResult<Boolean> {
+        val request = mapOf("completado" to completado)
 
         val response = retrofitService.apiService.updateSaber(saberId, request)
 
@@ -100,12 +103,14 @@ class UpdateRemoteDataSource(
         recTomados: Int,
         elemCompletados: Int,
         elemEvaluados: Int,
+        recTotales: Int,
     ): NetworkResult<Boolean> {
         val request =
             UpdateMateriaRequest(
                 recTomados = recTomados,
                 elemCompletados = elemCompletados,
                 elemEvaluados = elemEvaluados,
+                recTotales = recTotales,
             )
 
         val response = retrofitService.apiService.updateMateria(id, request)

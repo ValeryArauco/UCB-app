@@ -11,4 +11,6 @@ data class UpdateMateriaRequest(
     val elemEvaluados: Int,
     @Json(name = "elem_completados")
     val elemCompletados: Int,
+    @Json(name = "rec_totales")
+    val recTotales: Int,
 )

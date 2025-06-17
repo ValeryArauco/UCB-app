@@ -1,6 +1,5 @@
 package com.medicat.ucbapp.service
 
-import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -16,85 +15,101 @@ import com.medicat.ucbapp.MainActivity
 class FirebaseService : FirebaseMessagingService() {
     companion object {
         val TAG = FirebaseService::class.java.simpleName
+        private const val CHANNEL_ID = "competition_notifications"
     }
-    //    override fun onNewToken(token: String) {
-    //        Log.d(TAG, "Refreshed token: $token")
-    //
-    //        // If you want to send messages to this application instance or
-    //        // manage this apps subscriptions on the server side, send the
-    //        // FCM registration token to your app server.
-    //        sendRegistrationToServer(token)
-    //    }
 
-    override fun onMessageReceived(remoteMessage: RemoteMessage) { // ...
-        // TODO(developer): Handle FCM messages here.
-        // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
-        Log.d(TAG, "From: " + remoteMessage.from)
-        // Check if message contains a data payload.
-        if (remoteMessage.data.size > 0) {
-            Log.d(TAG, "Message data payload: " + remoteMessage.data)
-            if ( /* Check if data needs to be processed by long running job */true) { // For long-running tasks (10 seconds or more) use Firebase Job Dispatcher.
-                // scheduleJob()
-            } else { // Handle message within 10 seconds
-                // handleNow()
-            }
-        }
-        // Check if message contains a notification payload.
-        if (remoteMessage.notification != null) {
-            Log.d(TAG, "Message Notification Body: " + remoteMessage.notification!!.body)
-        }
-        // Also if you intend on generating your own notifications as a result of a received FCM
-        // message, here is where that should be initiated. See sendNotification method below.
+    override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        Log.d(TAG, "From: ${remoteMessage.from}")
+        Log.d(TAG, "Message received!")
 
-        super.onMessageReceived(remoteMessage)
+        if (remoteMessage.data.isNotEmpty()) {
+            Log.d(TAG, "Message data payload: ${remoteMessage.data}")
+        }
+
+        remoteMessage.notification?.let { notification ->
+            Log.d(TAG, "Message Notification Title: ${notification.title}")
+            Log.d(TAG, "Message Notification Body: ${notification.body}")
+        }
+
+        MainActivity.unreadNotificationsCount.value += 1
+        createNotificationChannel()
 
         showNotification(
             title = remoteMessage.notification?.title ?: "Nueva notificación",
-            body = remoteMessage.notification?.body ?: "",
+            body = remoteMessage.notification?.body ?: "Tienes una nueva notificación",
+            data = remoteMessage.data,
         )
     }
 
-    @SuppressLint("ServiceCast")
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+            if (notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
+                val channel =
+                    NotificationChannel(
+                        CHANNEL_ID,
+                        "Notificaciones de Competencias",
+                        NotificationManager.IMPORTANCE_HIGH,
+                    ).apply {
+                        description = "Notificaciones sobre fechas límite de competencias"
+                        enableLights(true)
+                        enableVibration(true)
+                        setShowBadge(true)
+                    }
+                notificationManager.createNotificationChannel(channel)
+                Log.d(TAG, "Notification channel created: $CHANNEL_ID")
+            }
+        }
+    }
+
     private fun showNotification(
         title: String,
         body: String,
+        data: Map<String, String> = emptyMap(),
     ) {
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        Log.d(TAG, "Showing notification: $title - $body")
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel =
-                NotificationChannel(
-                    "competition_notifications",
-                    "Notificaciones de Competencias",
-                    NotificationManager.IMPORTANCE_HIGH,
-                )
-            notificationManager.createNotificationChannel(channel)
-        }
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         val intent =
             Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+                data.forEach { (key, value) ->
+                    putExtra(key, value)
+                }
             }
 
         val pendingIntent =
             PendingIntent.getActivity(
                 this,
-                0,
+                System.currentTimeMillis().toInt(),
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
 
         val notification =
             NotificationCompat
-                .Builder(this, "competition_notifications")
-                .setSmallIcon(com.medicat.ucbapp.R.drawable.ic_launcher_foreground)
+                .Builder(this, CHANNEL_ID)
+                .setSmallIcon(com.medicat.ucbapp.R.drawable.logo)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(body))
                 .build()
 
-        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+        val notificationId = System.currentTimeMillis().toInt()
+        notificationManager.notify(notificationId, notification)
+        Log.d(TAG, "Notification displayed with ID: $notificationId")
+    }
+
+    override fun onNewToken(token: String) {
+        Log.d(TAG, "Refreshed token: $token")
+        // Aquí deberías enviar el token a tu servidor
+        // sendRegistrationToServer(token)
     }
 }

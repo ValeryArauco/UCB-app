@@ -6,5 +6,8 @@ import com.medicat.data.UpdateRepository
 class UpdateSaber(
     val updateRepository: UpdateRepository,
 ) {
-    suspend fun invoke(saberId: Int): NetworkResult<Boolean> = updateRepository.updateSaber(saberId)
+    suspend fun invoke(
+        saberId: Int,
+        completado: Boolean,
+    ): NetworkResult<Boolean> = updateRepository.updateSaber(saberId, completado)
 }

@@ -1,6 +1,5 @@
 package com.medicat.ucbapp.perfil
 
-import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -30,6 +29,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -53,7 +53,7 @@ import com.google.firebase.auth.auth
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun PerfilUI() {
+fun PerfilUI(onNavigateToLogin: () -> Unit) {
     val email = Firebase.auth.currentUser?.email ?: ""
     val displayName = Firebase.auth.currentUser?.displayName ?: "Usuario"
     val photoUrl =
@@ -64,116 +64,276 @@ fun PerfilUI() {
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val activity = context as? Activity
 
-    Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .background(Color(0xFFF2F2F2)),
-    ) {
-        Column(
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color(0xFFF8F9FA),
+    ) { paddingValues ->
+
+        Box(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(paddingValues),
         ) {
-            Text(
-                text = "Mi perfil",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 32.dp),
-            )
-
-            Card(
+            Column(
                 modifier =
                     Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp),
-                colors =
-                    CardDefaults.cardColors(
-                        containerColor = Color.White,
-                    ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                shape = RoundedCornerShape(16.dp),
+                        .fillMaxSize()
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
             ) {
-                Column(
+                Text(
+                    text = "Mi perfil",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 32.dp),
+                )
+
+                Card(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                            .padding(bottom = 24.dp),
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = Color.White,
+                        ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    shape = RoundedCornerShape(16.dp),
                 ) {
-                    Box(
+                    Column(
                         modifier =
                             Modifier
-                                .size(80.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                    shape = CircleShape,
-                                ),
-                        contentAlignment = Alignment.Center,
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        if (photoUrl != null) {
-                            AsyncImage(
-                                model = photoUrl,
-                                contentDescription = "Avatar",
-                                modifier =
-                                    Modifier
-                                        .fillMaxSize()
-                                        .clip(CircleShape),
-                            )
-                        } else {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .size(80.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                        shape = CircleShape,
+                                    ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (photoUrl != null) {
+                                AsyncImage(
+                                    model = photoUrl,
+                                    contentDescription = "Avatar",
+                                    modifier =
+                                        Modifier
+                                            .fillMaxSize()
+                                            .clip(CircleShape),
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "Avatar",
+                                    modifier = Modifier.size(40.dp),
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = displayName,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Text(
+                            text = email,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
+                }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = Color.White,
+                        ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        ProfileMenuItem(
+                            icon = Icons.Default.Phone,
+                            title = "Ayuda y soporte",
+                            onClick = {
+                                val intent =
+                                    Intent(Intent.ACTION_SENDTO).apply {
+                                        data = Uri.parse("mailto:")
+                                        putExtra(
+                                            Intent.EXTRA_EMAIL,
+                                            arrayOf("ucb.app.dev@gmail.com"),
+                                        )
+                                        putExtra(
+                                            Intent.EXTRA_SUBJECT,
+                                            "Soporte - Aplicación UCB Docentes",
+                                        )
+                                    }
+                                try {
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            "No se pudo abrir la aplicación de correo",
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                }
+                            },
+                        )
+
+                        Divider(
+                            color = Color.Gray.copy(alpha = 0.2f),
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+
+                        ProfileMenuItem(
+                            icon = Icons.Default.Info,
+                            title = "Acerca de",
+                            onClick = { showAboutDialog = true },
+                        )
+
+                        Divider(
+                            color = Color.Gray.copy(alpha = 0.2f),
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+
+                        ProfileMenuItem(
+                            icon = Icons.Default.ExitToApp,
+                            title = "Cerrar sesión",
+                            onClick = { showLogoutDialog = true },
+                            textColor = Color.Red,
+                            iconColor = Color.Red,
+                        )
+                    }
+                }
+            }
+        }
+
+        if (showLogoutDialog) {
+            AlertDialog(
+                onDismissRequest = { showLogoutDialog = false },
+                title = {
+                    Text(text = "Cerrar sesión")
+                },
+                text = {
+                    Text(text = "¿Estás seguro de que deseas cerrar sesión?")
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            Firebase.auth.signOut()
+                            showLogoutDialog = false
+
+                            Toast
+                                .makeText(
+                                    context,
+                                    "Sesión cerrada exitosamente",
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+
+                            // Navegar al login en lugar de cerrar la aplicación
+                            onNavigateToLogin()
+                        },
+                    ) {
+                        Text(
+                            text = "Cerrar sesión",
+                            color = Color.Red,
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showLogoutDialog = false },
+                    ) {
+                        Text("Cancelar")
+                    }
+                },
+            )
+        }
+
+        if (showAboutDialog) {
+            AlertDialog(
+                onDismissRequest = { showAboutDialog = false },
+                title = {
+                    Text(
+                        text = "UCB Docentes",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+                text = {
+                    Column {
+                        Text(
+                            text = "Esta aplicación está destinada a los docentes de la Universidad Católica Boliviana para el registro y seguimiento del progreso académico de sus estudiantes.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 12.dp),
+                        )
+
+                        Text(
+                            text = "Actualmente se encuentra en etapa de desarrollo y mejora continua. Tus observaciones y comentarios nos ayudan a crear una mejor experiencia educativa.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 12.dp),
+                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(top = 8.dp),
+                        ) {
                             Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Avatar",
-                                modifier = Modifier.size(40.dp),
-                                tint = MaterialTheme.colorScheme.primary,
+                                imageVector = Icons.Default.Build,
+                                contentDescription = "Versión",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = "Versión 1.0.0 (Beta)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 8.dp),
                             )
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = displayName,
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Text(
-                        text = email,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
-            }
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors =
-                    CardDefaults.cardColors(
-                        containerColor = Color.White,
-                    ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    ProfileMenuItem(
-                        icon = Icons.Default.Phone,
-                        title = "Ayuda y soporte",
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = { showAboutDialog = false },
+                    ) {
+                        Text("Entendido")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
                         onClick = {
+                            showAboutDialog = false
                             val intent =
                                 Intent(Intent.ACTION_SENDTO).apply {
                                     data = Uri.parse("mailto:")
                                     putExtra(Intent.EXTRA_EMAIL, arrayOf("ucb.app.dev@gmail.com"))
-                                    putExtra(Intent.EXTRA_SUBJECT, "Soporte - Aplicación UCB Docentes")
+                                    putExtra(
+                                        Intent.EXTRA_SUBJECT,
+                                        "Feedback - Aplicación UCB Docentes",
+                                    )
+                                    putExtra(
+                                        Intent.EXTRA_TEXT,
+                                        "Hola, me gustaría compartir mi feedback sobre la aplicación:\n\n",
+                                    )
                                 }
                             try {
                                 context.startActivity(intent)
@@ -186,154 +346,12 @@ fun PerfilUI() {
                                     ).show()
                             }
                         },
-                    )
-
-                    Divider(
-                        color = Color.Gray.copy(alpha = 0.2f),
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                    )
-
-                    ProfileMenuItem(
-                        icon = Icons.Default.Info,
-                        title = "Acerca de",
-                        onClick = { showAboutDialog = true },
-                    )
-
-                    Divider(
-                        color = Color.Gray.copy(alpha = 0.2f),
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                    )
-
-                    ProfileMenuItem(
-                        icon = Icons.Default.ExitToApp,
-                        title = "Cerrar sesión",
-                        onClick = { showLogoutDialog = true },
-                        textColor = Color.Red,
-                        iconColor = Color.Red,
-                    )
-                }
-            }
-        }
-    }
-
-    if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = {
-                Text(text = "Cerrar sesión")
-            },
-            text = {
-                Text(text = "¿Estás seguro de que deseas cerrar sesión?")
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        Firebase.auth.signOut()
-                        showLogoutDialog = false
-
-                        Toast
-                            .makeText(
-                                context,
-                                "Sesión cerrada exitosamente",
-                                Toast.LENGTH_SHORT,
-                            ).show()
-
-                        activity?.finishAffinity()
-                    },
-                ) {
-                    Text(
-                        text = "Cerrar sesión",
-                        color = Color.Red,
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showLogoutDialog = false },
-                ) {
-                    Text("Cancelar")
-                }
-            },
-        )
-    }
-
-    if (showAboutDialog) {
-        AlertDialog(
-            onDismissRequest = { showAboutDialog = false },
-            title = {
-                Text(
-                    text = "UCB Docentes",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-            },
-            text = {
-                Column {
-                    Text(
-                        text = "Esta aplicación está destinada a los docentes de la Universidad Católica Boliviana para el registro y seguimiento del progreso académico de sus estudiantes.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(bottom = 12.dp),
-                    )
-
-                    Text(
-                        text = "Actualmente se encuentra en etapa de desarrollo y mejora continua. Tus observaciones y comentarios nos ayudan a crear una mejor experiencia educativa.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(bottom = 12.dp),
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 8.dp),
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Build,
-                            contentDescription = "Versión",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp),
-                        )
-                        Text(
-                            text = "Versión 1.0.0 (Beta)",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 8.dp),
-                        )
+                        Text("Enviar feedback")
                     }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = { showAboutDialog = false },
-                ) {
-                    Text("Entendido")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showAboutDialog = false
-                        val intent =
-                            Intent(Intent.ACTION_SENDTO).apply {
-                                data = Uri.parse("mailto:")
-                                putExtra(Intent.EXTRA_EMAIL, arrayOf("ucb.app.dev@gmail.com"))
-                                putExtra(Intent.EXTRA_SUBJECT, "Feedback - Aplicación UCB Docentes")
-                                putExtra(Intent.EXTRA_TEXT, "Hola, me gustaría compartir mi feedback sobre la aplicación:\n\n")
-                            }
-                        try {
-                            context.startActivity(intent)
-                        } catch (e: Exception) {
-                            Toast
-                                .makeText(
-                                    context,
-                                    "No se pudo abrir la aplicación de correo",
-                                    Toast.LENGTH_SHORT,
-                                ).show()
-                        }
-                    },
-                ) {
-                    Text("Enviar feedback")
-                }
-            },
-        )
+                },
+            )
+        }
     }
 }
 

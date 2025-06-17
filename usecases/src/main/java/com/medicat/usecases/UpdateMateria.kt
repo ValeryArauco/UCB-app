@@ -11,5 +11,6 @@ class UpdateMateria(
         recTomados: Int,
         elemCompletados: Int,
         elemEvaluados: Int,
-    ): NetworkResult<Boolean> = updateRepository.updateMateria(id, recTomados, elemCompletados, elemEvaluados)
+        recTotales: Int,
+    ): NetworkResult<Boolean> = updateRepository.updateMateria(id, recTomados, elemCompletados, elemEvaluados, recTotales)
 }

@@ -1,6 +1,6 @@
 package com.medicat.ucbapp.materias
 
-import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -64,8 +64,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.medicat.domain.Materia
+import com.medicat.ucbapp.service.InternetConnection.Companion.isConnected
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun MateriasUI(
@@ -82,11 +82,12 @@ fun MateriasUI(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color(0xFFF8F9FA),
-    ) {
+    ) { paddingValues ->
         Column(
             modifier =
                 Modifier
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .padding(paddingValues),
         ) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -175,7 +176,6 @@ fun MateriasUI(
     }
 }
 
-@Suppress("ktlint:standard:function-naming")
 @Composable
 fun SearchBar(
     searchText: String,
@@ -362,12 +362,21 @@ fun MateriaCard(
     materia: Materia,
     onClick: () -> Unit,
 ) {
+    val context = LocalContext.current
     Card(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .padding(vertical = 6.dp)
-                .clickable(onClick = onClick),
+                .clickable(
+                    onClick = {
+                        if (isConnected(context)) {
+                            onClick
+                        } else {
+                            Toast.makeText(context, "No tiene acceso a internet", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(12.dp),
         colors =
