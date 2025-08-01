@@ -128,16 +128,6 @@ ElementoDetailsScreen (Lista de saberes, evaluación, recuperatorios y comentari
 5. **Notificaciones**: Centro de notificaciones
 6. **Perfil**: Información del usuario
 
-## Configuración del Proyecto
-
-### Variables de Entorno
-```kotlin
-// Configurar en gradle.properties o variables de entorno
-GOOGLE_WEB_CLIENT_ID=your_web_client_id
-FIREBASE_PROJECT_ID=your_firebase_project_id
-```
-
-
 ## Estado de la Aplicación
 
 ### Estados de UI
