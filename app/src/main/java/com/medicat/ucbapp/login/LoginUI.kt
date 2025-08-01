@@ -378,7 +378,7 @@ private fun ModernTextField(
         label = {
             Text(
                 text = label,
-                color = Color(0xFF374151),
+                color = Color.DarkGray,
                 fontWeight = FontWeight.SemiBold,
                 style = MaterialTheme.typography.bodySmall,
             )

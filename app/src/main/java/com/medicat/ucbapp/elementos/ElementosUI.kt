@@ -1,6 +1,5 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -40,7 +39,6 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ElementosUI(
@@ -56,83 +54,78 @@ fun ElementosUI(
     val elementosState by elementosViewModel.uiState.collectAsState()
     var selectedFilter by remember { mutableStateOf(FilterType.ALL) }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color(0xFFF8F9FA),
+    Column(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8F9FA)),
     ) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFF5F5F5)),
+        TopAppBarSection(
+            materia.name,
+            onBackPressed,
+        )
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 2.dp,
         ) {
-            TopAppBarSection(
-                materia.name,
-                onBackPressed,
-            )
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 2.dp,
-            ) {
-                Column {
-                    val updatedMateria =
-                        when (val state = elementosState) {
-                            is ElementosViewModel.ElementosUIState.Loaded -> state.materia ?: materia
-                            else -> materia
-                        }
-                    ProgressSection(updatedMateria)
+            Column {
+                val updatedMateria =
+                    when (val state = elementosState) {
+                        is ElementosViewModel.ElementosUIState.Loaded -> state.materia ?: materia
+                        else -> materia
+                    }
+                ProgressSection(updatedMateria)
 
-                    FilterChips(
-                        selectedFilter = selectedFilter,
-                        onFilterSelected = { selectedFilter = it },
-                    )
+                FilterChips(
+                    selectedFilter = selectedFilter,
+                    onFilterSelected = { selectedFilter = it },
+                )
+            }
+        }
+        when (val ui = elementosState) {
+            is ElementosViewModel.ElementosUIState.Loading -> {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Cargando elementos...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
-            when (val ui = elementosState) {
-                is ElementosViewModel.ElementosUIState.Loading -> {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            CircularProgressIndicator(
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "Cargando elementos...",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+
+            is ElementosViewModel.ElementosUIState.Loaded -> {
+                val filteredElementos = filterElementos(ui.elementos, selectedFilter)
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    items(filteredElementos) { elemento ->
+                        CompetencyCard(
+                            element = elemento,
+                            onClick = { onClick(elemento) },
+                        )
                     }
                 }
+            }
 
-                is ElementosViewModel.ElementosUIState.Loaded -> {
-                    val filteredElementos = filterElementos(ui.elementos, selectedFilter)
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        items(filteredElementos) { elemento ->
-                            CompetencyCard(
-                                element = elemento,
-                                onClick = { onClick(elemento) },
-                            )
-                        }
-                    }
-                }
-
-                is ElementosViewModel.ElementosUIState.Error -> {
-                    ErrorView(
-                        message = ui.message,
-                        onRetry = { elementosViewModel.loadElementos(materia) },
-                    )
-                }
+            is ElementosViewModel.ElementosUIState.Error -> {
+                ErrorView(
+                    message = ui.message,
+                    onRetry = { elementosViewModel.loadElementos(materia) },
+                )
             }
         }
     }
@@ -171,7 +164,6 @@ fun TopAppBarSection(
                 navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
             ),
         windowInsets = WindowInsets(0.dp),
-        modifier = Modifier.statusBarsPadding(),
     )
 }
 

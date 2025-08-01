@@ -39,7 +39,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -79,98 +78,93 @@ fun MateriasUI(
     var searchText by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf(FilterType.IN_PROGRESS) }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color(0xFFF8F9FA),
-    ) { paddingValues ->
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+    Column(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8F9FA)),
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 2.dp,
         ) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 2.dp,
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
             ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                Text(
+                    text = "Mis Materias",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                SearchBar(
+                    searchText = searchText,
+                    onSearchTextChange = { searchText = it },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                FilterChips(
+                    selectedFilter = selectedFilter,
+                    onFilterSelected = { selectedFilter = it },
+                )
+            }
+        }
+
+        when (val ui = materiasState) {
+            is MateriasViewModel.MateriasUIState.Loading -> {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize(),
                 ) {
-                    Text(
-                        text = "Mis Materias",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    SearchBar(
-                        searchText = searchText,
-                        onSearchTextChange = { searchText = it },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    FilterChips(
-                        selectedFilter = selectedFilter,
-                        onFilterSelected = { selectedFilter = it },
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Cargando materias...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
+            is MateriasViewModel.MateriasUIState.Loaded -> {
+                val filteredMaterias = filterMaterias(ui.materias, searchText, selectedFilter)
 
-            when (val ui = materiasState) {
-                is MateriasViewModel.MateriasUIState.Loading -> {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            CircularProgressIndicator(
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "Cargando materias...",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                }
-                is MateriasViewModel.MateriasUIState.Loaded -> {
-                    val filteredMaterias = filterMaterias(ui.materias, searchText, selectedFilter)
-
-                    if (filteredMaterias.isEmpty()) {
-                        EmptyStateView(
-                            searchText = searchText,
-                            selectedFilter = selectedFilter,
-                        )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            items(filteredMaterias) { materia ->
-                                MateriaCard(
-                                    materia = materia,
-                                    onClick = { onSuccess(materia) },
-                                )
-                            }
-                        }
-                    }
-                }
-                is MateriasViewModel.MateriasUIState.Error -> {
-                    ErrorView(
-                        message = ui.message,
-                        onRetry = { materiasViewModel.loadMaterias() },
+                if (filteredMaterias.isEmpty()) {
+                    EmptyStateView(
+                        searchText = searchText,
+                        selectedFilter = selectedFilter,
                     )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        items(filteredMaterias) { materia ->
+                            MateriaCard(
+                                materia = materia,
+                                onClick = { onSuccess(materia) },
+                            )
+                        }
+                    }
                 }
+            }
+            is MateriasViewModel.MateriasUIState.Error -> {
+                ErrorView(
+                    message = ui.message,
+                    onRetry = { materiasViewModel.loadMaterias() },
+                )
             }
         }
     }

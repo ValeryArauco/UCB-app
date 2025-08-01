@@ -1,6 +1,7 @@
 package com.medicat.ucbapp.elementoDetails
 import TopAppBarSection
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
@@ -12,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -63,331 +63,325 @@ fun ElementoDetailsUI(
                 },
         )
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color(0xFFF8F9FA),
-    ) { paddingValues ->
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFF5F5F5))
-                    .padding(paddingValues),
-        ) {
-            TopAppBarSection(
-                "ELEMENTO DE COMPETENCIA ${elemento.descripcion[0]}",
-                onBackPressed,
-            )
+    Column(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8F9FA)),
+    ) {
+        TopAppBarSection(
+            "ELEMENTO DE COMPETENCIA ${elemento.descripcion[0]}",
+            onBackPressed,
+        )
 
-            when (val ui = elementoState) {
-                is ElementoDetailsViewModel.UIState.Loading -> {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize(),
+        when (val ui = elementoState) {
+            is ElementoDetailsViewModel.UIState.Loading -> {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            CircularProgressIndicator(
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "Cargando...",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Cargando...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
+            }
 
-                is ElementoDetailsViewModel.UIState.Loaded -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        item {
-                            SectionCard(title = "Saberes mínimos") {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    ui.saberes.forEach { saber ->
-                                        SaberItem(
-                                            item = saber,
-                                            isSelected = saberesSeleccionados.contains(saber.id),
-                                            onSelectionChanged = { selected ->
-                                                elementoDetailsViewModel.toggleSaber(saber.id, selected)
-                                            },
-                                        )
-                                    }
+            is ElementoDetailsViewModel.UIState.Loaded -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    item {
+                        SectionCard(title = "Saberes mínimos") {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                ui.saberes.forEach { saber ->
+                                    SaberItem(
+                                        item = saber,
+                                        isSelected = saberesSeleccionados.contains(saber.id),
+                                        onSelectionChanged = { selected ->
+                                            elementoDetailsViewModel.toggleSaber(saber.id, selected)
+                                        },
+                                    )
                                 }
                             }
                         }
-                        item {
-                            SectionCard(title = "Confirmar evaluación") {
-                                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                    if (!evaluacionCompletada) {
-                                        Card(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            colors =
-                                                CardDefaults.cardColors(
-                                                    containerColor = Color(0xFFF3F4F6),
-                                                ),
-                                            border = BorderStroke(2.dp, Color(0xFFE5E7EB)),
-                                            shape = RoundedCornerShape(12.dp),
+                    }
+                    item {
+                        SectionCard(title = "Confirmar evaluación") {
+                            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                if (!evaluacionCompletada) {
+                                    Card(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors =
+                                            CardDefaults.cardColors(
+                                                containerColor = Color(0xFFF3F4F6),
+                                            ),
+                                        border = BorderStroke(2.dp, Color(0xFFE5E7EB)),
+                                        shape = RoundedCornerShape(12.dp),
+                                    ) {
+                                        Column(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable { showDatePicker = true }
+                                                    .padding(20.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
                                         ) {
-                                            Column(
-                                                modifier =
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .clickable { showDatePicker = true }
-                                                        .padding(20.dp),
-                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                            Icon(
+                                                Icons.Default.CheckCircle,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(32.dp),
+                                                tint = MaterialTheme.colorScheme.primary,
+                                            )
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                text = "Marcar como evaluado",
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.primary,
+                                            )
+                                            Text(
+                                                text = "Toca para seleccionar fecha",
+                                                fontSize = 12.sp,
+                                                color = Color(0xFF6B7280),
+                                                modifier = Modifier.padding(top = 2.dp),
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    Card(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors =
+                                            CardDefaults.cardColors(
+                                                containerColor = Color(0xFFE8F5E8),
+                                            ),
+                                        shape = RoundedCornerShape(12.dp),
+                                    ) {
+                                        Column(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(20.dp),
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                verticalAlignment = Alignment.CenterVertically,
                                             ) {
                                                 Icon(
                                                     Icons.Default.CheckCircle,
                                                     contentDescription = null,
-                                                    modifier = Modifier.size(32.dp),
-                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(28.dp),
+                                                    tint = Color(0xFF4CAF50),
                                                 )
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                Text(
-                                                    text = "Marcar como evaluado",
-                                                    fontSize = 16.sp,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    color = MaterialTheme.colorScheme.primary,
-                                                )
-                                                Text(
-                                                    text = "Toca para seleccionar fecha",
-                                                    fontSize = 12.sp,
-                                                    color = Color(0xFF6B7280),
-                                                    modifier = Modifier.padding(top = 2.dp),
-                                                )
+                                                Spacer(modifier = Modifier.width(12.dp))
+                                                Column(modifier = Modifier.weight(1f)) {
+                                                    Text(
+                                                        text = "Evaluación completada",
+                                                        fontSize = 16.sp,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = Color(0xFF2E7D32),
+                                                    )
+                                                    Text(
+                                                        text = "Fecha: ${formatDateForDisplay(evaluacionFecha)}",
+                                                        fontSize = 13.sp,
+                                                        color = Color(0xFF2E7D32),
+                                                        modifier = Modifier.padding(top = 2.dp),
+                                                    )
+                                                }
                                             }
-                                        }
-                                    } else {
-                                        Card(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            colors =
-                                                CardDefaults.cardColors(
-                                                    containerColor = Color(0xFFE8F5E8),
-                                                ),
-                                            shape = RoundedCornerShape(12.dp),
-                                        ) {
-                                            Column(
-                                                modifier =
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(20.dp),
+
+                                            Spacer(modifier = Modifier.height(12.dp))
+
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End,
                                             ) {
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    verticalAlignment = Alignment.CenterVertically,
+                                                TextButton(
+                                                    onClick = { showDatePicker = true },
+                                                    colors =
+                                                        ButtonDefaults.textButtonColors(
+                                                            contentColor = Color(0xFF059669),
+                                                        ),
                                                 ) {
                                                     Icon(
-                                                        Icons.Default.CheckCircle,
+                                                        Icons.Default.Edit,
                                                         contentDescription = null,
-                                                        modifier = Modifier.size(28.dp),
-                                                        tint = Color(0xFF4CAF50),
+                                                        modifier = Modifier.size(14.dp),
                                                     )
-                                                    Spacer(modifier = Modifier.width(12.dp))
-                                                    Column(modifier = Modifier.weight(1f)) {
-                                                        Text(
-                                                            text = "Evaluación completada",
-                                                            fontSize = 16.sp,
-                                                            fontWeight = FontWeight.SemiBold,
-                                                            color = Color(0xFF2E7D32),
-                                                        )
-                                                        Text(
-                                                            text = "Fecha: ${formatDateForDisplay(evaluacionFecha)}",
-                                                            fontSize = 13.sp,
-                                                            color = Color(0xFF2E7D32),
-                                                            modifier = Modifier.padding(top = 2.dp),
-                                                        )
-                                                    }
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Text("Cambiar fecha", fontSize = 12.sp)
                                                 }
 
-                                                Spacer(modifier = Modifier.height(12.dp))
-
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    horizontalArrangement = Arrangement.End,
+                                                TextButton(
+                                                    onClick = { elementoDetailsViewModel.setEvaluacionCompletada(false) },
+                                                    colors =
+                                                        ButtonDefaults.textButtonColors(
+                                                            contentColor = Color(0xFF6B7280),
+                                                        ),
                                                 ) {
-                                                    TextButton(
-                                                        onClick = { showDatePicker = true },
-                                                        colors =
-                                                            ButtonDefaults.textButtonColors(
-                                                                contentColor = Color(0xFF059669),
-                                                            ),
-                                                    ) {
-                                                        Icon(
-                                                            Icons.Default.Edit,
-                                                            contentDescription = null,
-                                                            modifier = Modifier.size(14.dp),
-                                                        )
-                                                        Spacer(modifier = Modifier.width(4.dp))
-                                                        Text("Cambiar fecha", fontSize = 12.sp)
-                                                    }
-
-                                                    TextButton(
-                                                        onClick = { elementoDetailsViewModel.setEvaluacionCompletada(false) },
-                                                        colors =
-                                                            ButtonDefaults.textButtonColors(
-                                                                contentColor = Color(0xFF6B7280),
-                                                            ),
-                                                    ) {
-                                                        Icon(
-                                                            Icons.Default.Close,
-                                                            contentDescription = null,
-                                                            modifier = Modifier.size(14.dp),
-                                                        )
-                                                        Spacer(modifier = Modifier.width(4.dp))
-                                                        Text("Deshacer", fontSize = 12.sp)
-                                                    }
+                                                    Icon(
+                                                        Icons.Default.Close,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(14.dp),
+                                                    )
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Text("Deshacer", fontSize = 12.sp)
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
-
-                            if (showDatePicker) {
-                                DatePickerDialog(
-                                    onDismissRequest = { showDatePicker = false },
-                                    confirmButton = {
-                                        TextButton(
-                                            onClick = {
-                                                val selectedDateMillis = datePickerState.selectedDateMillis
-                                                if (selectedDateMillis != null) {
-                                                    val selectedDate = Date(selectedDateMillis)
-                                                    val formattedDate = formatDateToString(selectedDate)
-                                                    elementoDetailsViewModel.setEvaluacionFecha(formattedDate)
-                                                    elementoDetailsViewModel.setEvaluacionCompletada(true)
-                                                }
-                                                showDatePicker = false
-                                            },
-                                        ) {
-                                            Text(text = "Aceptar")
-                                        }
-                                    },
-                                    dismissButton = {
-                                        TextButton(
-                                            onClick = { showDatePicker = false },
-                                        ) {
-                                            Text(text = "Cancelar")
-                                        }
-                                    },
-                                ) {
-                                    DatePicker(state = datePickerState)
-                                }
-                            }
                         }
-                        item {
-                            SectionCard(title = "Recuperatorios") {
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    ui.recuperatorios.forEachIndexed { index, recuperatorio ->
-                                        RecuperatorioCard(
-                                            recuperatorio = recuperatorio,
-                                            numeroRecuperatorio = index + 1,
-                                            puedeEliminar = ui.recuperatorios.size > 1,
-                                            onMarcarCompletado = { fecha ->
-                                                elementoDetailsViewModel.updateRecuperatorioLocal(index, true, fecha)
-                                            },
-                                            onDesmarcar = {
-                                                elementoDetailsViewModel.updateRecuperatorioLocal(index, false, null)
-                                            },
-                                            onCambiarFecha = { fecha ->
-                                                elementoDetailsViewModel.updateRecuperatorioLocal(index, null, fecha)
-                                            },
-                                            onEliminar = {
-                                                if (elementoDetailsViewModel.currentRecuperatorios.size == 1) {
-                                                    Toast
-                                                        .makeText(
-                                                            context,
-                                                            "No se puede eliminar: cada elemento debe tener al menos un recuperatorio",
-                                                            Toast.LENGTH_SHORT,
-                                                        ).show()
-                                                } else {
-                                                    elementoDetailsViewModel.eliminarRecuperatorio(index)
-                                                }
-                                            },
-                                        )
-                                    }
 
+                        if (showDatePicker) {
+                            DatePickerDialog(
+                                onDismissRequest = { showDatePicker = false },
+                                confirmButton = {
                                     TextButton(
-                                        onClick = { elementoDetailsViewModel.agregarRecuperatorio(elemento) },
-                                        modifier = Modifier.align(Alignment.End),
+                                        onClick = {
+                                            val selectedDateMillis = datePickerState.selectedDateMillis
+                                            if (selectedDateMillis != null) {
+                                                val selectedDate = Date(selectedDateMillis + 86400000)
+                                                val formattedDate = formatDateToString(selectedDate)
+                                                elementoDetailsViewModel.setEvaluacionFecha(formattedDate)
+                                                elementoDetailsViewModel.setEvaluacionCompletada(true)
+                                            }
+                                            showDatePicker = false
+                                        },
                                     ) {
-                                        Text(
-                                            text = "Agregar",
-                                            color = Color(0xFF1976D2),
-                                            fontSize = 14.sp,
-                                        )
+                                        Text(text = "Aceptar")
                                     }
-                                }
-                            }
-                        }
-                        item {
-                            SectionCard(title = "Comentarios") {
-                                OutlinedTextField(
-                                    value = comentario,
-                                    onValueChange = { elementoDetailsViewModel.setComentario(it) },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    placeholder = {
-                                        Text(
-                                            text = "Añadir comentario (Opcional)",
-                                            color = Color.Gray,
-                                        )
-                                    },
-                                    minLines = 3,
-                                    colors =
-                                        OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = Color(0xFF1976D2),
-                                            unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-                                        ),
-                                )
-                            }
-                        }
-                        item {
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Button(
-                                onClick = { showConfirmDialog = true },
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .height(48.dp),
-                                colors =
-                                    ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary,
-                                    ),
-                                shape = RoundedCornerShape(18.dp),
+                                },
+                                dismissButton = {
+                                    TextButton(
+                                        onClick = { showDatePicker = false },
+                                    ) {
+                                        Text(text = "Cancelar")
+                                    }
+                                },
                             ) {
-                                Text(
-                                    text = "Guardar Cambios",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium,
-                                )
-                            }
-                            if (showConfirmDialog) {
-                                ConfirmarRegistroDialog(
-                                    onDismissRequest = { showConfirmDialog = false },
-                                    onConfirmation = {
-                                        showConfirmDialog = false
-                                        onBackPressed()
-                                    },
-                                    elementoDetailsViewModel = elementoDetailsViewModel,
-                                )
+                                DatePicker(state = datePickerState)
                             }
                         }
                     }
-                }
+                    item {
+                        SectionCard(title = "Recuperatorios") {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                ui.recuperatorios.forEachIndexed { index, recuperatorio ->
+                                    RecuperatorioCard(
+                                        recuperatorio = recuperatorio,
+                                        numeroRecuperatorio = index + 1,
+                                        puedeEliminar = ui.recuperatorios.size > 1,
+                                        onMarcarCompletado = { fecha ->
+                                            elementoDetailsViewModel.updateRecuperatorioLocal(index, true, fecha)
+                                        },
+                                        onDesmarcar = {
+                                            elementoDetailsViewModel.updateRecuperatorioLocal(index, false, null)
+                                        },
+                                        onCambiarFecha = { fecha ->
+                                            elementoDetailsViewModel.updateRecuperatorioLocal(index, null, fecha)
+                                        },
+                                        onEliminar = {
+                                            if (elementoDetailsViewModel.currentRecuperatorios.size == 1) {
+                                                Toast
+                                                    .makeText(
+                                                        context,
+                                                        "No se puede eliminar: cada elemento debe tener al menos un recuperatorio",
+                                                        Toast.LENGTH_SHORT,
+                                                    ).show()
+                                            } else {
+                                                elementoDetailsViewModel.eliminarRecuperatorio(index)
+                                            }
+                                        },
+                                    )
+                                }
 
-                is ElementoDetailsViewModel.UIState.Error -> {
-                    ErrorView(
-                        message = ui.message,
-                        onRetry = { elementoDetailsViewModel.loadData(elemento) },
-                    )
+                                TextButton(
+                                    onClick = { elementoDetailsViewModel.agregarRecuperatorio(elemento) },
+                                    modifier = Modifier.align(Alignment.End),
+                                ) {
+                                    Text(
+                                        text = "Agregar",
+                                        color = Color(0xFF1976D2),
+                                        fontSize = 14.sp,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    item {
+                        SectionCard(title = "Comentarios") {
+                            OutlinedTextField(
+                                value = comentario,
+                                onValueChange = { elementoDetailsViewModel.setComentario(it) },
+                                modifier = Modifier.fillMaxWidth(),
+                                placeholder = {
+                                    Text(
+                                        text = "Añadir comentario (Opcional)",
+                                        color = Color.Gray,
+                                    )
+                                },
+                                minLines = 3,
+                                colors =
+                                    OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = Color(0xFF1976D2),
+                                        unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                                    ),
+                            )
+                        }
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { showConfirmDialog = true },
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp),
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                ),
+                            shape = RoundedCornerShape(18.dp),
+                        ) {
+                            Text(
+                                text = "Guardar Cambios",
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium,
+                            )
+                        }
+                        if (showConfirmDialog) {
+                            ConfirmarRegistroDialog(
+                                onDismissRequest = { showConfirmDialog = false },
+                                onConfirmation = {
+                                    showConfirmDialog = false
+                                    onBackPressed()
+                                },
+                                elementoDetailsViewModel = elementoDetailsViewModel,
+                            )
+                        }
+                    }
                 }
+            }
+
+            is ElementoDetailsViewModel.UIState.Error -> {
+                ErrorView(
+                    message = ui.message,
+                    onRetry = { elementoDetailsViewModel.loadData(elemento) },
+                )
             }
         }
     }
@@ -562,111 +556,61 @@ fun SaberItem(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DateSelector(
-    fecha: String,
-    onFechaChanged: (String) -> Unit,
-    label: String,
-) {
-    var showDatePicker by remember { mutableStateOf(false) }
-
-    val datePickerState =
-        rememberDatePickerState(
-            selectableDates =
-                object : SelectableDates {
-                    override fun isSelectableDate(utcTimeMillis: Long): Boolean = utcTimeMillis <= System.currentTimeMillis()
-                },
-        )
-
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clickable { showDatePicker = true }
-                .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = Icons.Default.DateRange,
-            contentDescription = "Seleccionar fecha",
-            tint = Color(0xFF1976D2),
-            modifier = Modifier.size(20.dp),
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = formatDateForDisplay(fecha),
-            fontSize = 14.sp,
-            color = Color.Black,
-        )
-    }
-
-    if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val selectedDateMillis = datePickerState.selectedDateMillis
-
-                        if (selectedDateMillis != null) {
-                            val selectedDate = Date(selectedDateMillis)
-                            val formattedDate = formatDateToString(selectedDate)
-                            onFechaChanged(formattedDate)
-                        }
-                        showDatePicker = false
-                    },
-                ) {
-                    Text(text = "Aceptar")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDatePicker = false },
-                ) {
-                    Text(text = "Cancelar")
-                }
-            },
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-}
-
 fun formatDateToString(date: Date): String {
-    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
     return formatter.format(date)
 }
 
 fun formatDateForDisplay(dateString: String): String {
+    Log.d("display date", "before $dateString")
     if (dateString.isEmpty()) return ""
 
     try {
-        val possibleFormats =
-            listOf(
-                "dd/MM/yyyy",
-                "dd-MM-yyyy",
-                "yyyy-MM-dd",
-                "yyyy-MM-dd'T'HH:mm:ss",
-                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                "yyyy-MM-dd HH:mm:ss",
-            )
+        // Limpiar la string de caracteres extra
+        val cleanDate = dateString.trim()
 
-        for (format in possibleFormats) {
-            try {
-                val inputFormatter = SimpleDateFormat(format, Locale.getDefault())
-                val date = inputFormatter.parse(dateString)
-                if (date != null) {
-                    val outputFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                    return outputFormatter.format(date)
-                }
-            } catch (e: Exception) {
-                continue
+        // Caso 1: yyyy-MM-dd (ISO format)
+        if (cleanDate.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) {
+            val parts = cleanDate.split("-")
+            val year = parts[0]
+            val month = parts[1]
+            val day = parts[2]
+            val result = "$day-$month-$year"
+            Log.d("display date", "converted yyyy-MM-dd to $result")
+            return result
+        }
+
+        // Caso 2: yyyy-MM-ddTHH:mm:ss.SSSZ (ISO with time)
+        if (cleanDate.contains("T") && (cleanDate.contains("Z") || cleanDate.contains("+"))) {
+            val datePart = cleanDate.split("T")[0]
+            if (datePart.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) {
+                val parts = datePart.split("-")
+                val year = parts[0]
+                val month = parts[1]
+                val day = parts[2]
+                val result = "$day-$month-$year"
+                Log.d("display date", "converted ISO timestamp to $result")
+                return result
             }
         }
 
+        // Caso 3: dd-MM-yyyy (ya está en el formato correcto)
+        if (cleanDate.matches(Regex("\\d{2}-\\d{2}-\\d{4}"))) {
+            Log.d("display date", "already in correct format")
+            return cleanDate
+        }
+
+        // Caso 4: dd/MM/yyyy
+        if (cleanDate.matches(Regex("\\d{2}/\\d{2}/\\d{4}"))) {
+            val result = cleanDate.replace("/", "-")
+            Log.d("display date", "converted dd/MM/yyyy to $result")
+            return result
+        }
+
+        Log.d("display date", "no pattern matched, returning original")
         return dateString
     } catch (e: Exception) {
+        Log.e("display date", "error processing date: ${e.message}")
         return dateString
     }
 }
@@ -847,7 +791,7 @@ fun RecuperatorioCard(
                     onClick = {
                         val selectedDateMillis = datePickerState.selectedDateMillis
                         if (selectedDateMillis != null) {
-                            val selectedDate = Date(selectedDateMillis)
+                            val selectedDate = Date(selectedDateMillis + 86400000)
                             val formattedDate = formatDateToString(selectedDate)
                             if (recuperatorio.completado) {
                                 onCambiarFecha(formattedDate)

@@ -14,11 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "787541450450-ai93o8n3m4cqla7lb39vsquuu1005mvb.apps.googleusercontent.com",
+          "client_id": "787541450450-muuhejfepc2eo6eq6ncqkab15bddonkf.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.medicat.ucbapp",
-            "certificate_hash": "b7f77c415c8ccd651d7bd73a56dda6ccb96062b9"
+            "certificate_hash": "569785ab1ba9655fc45d68e7b9976e2af1dcf7a2"
           }
         },
         {

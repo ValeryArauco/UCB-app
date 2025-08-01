@@ -121,6 +121,10 @@ class ElementoDetailsViewModel
                             originalElementoCompletado = elemento.completado
 
                             _evaluacionCompletada.value = elemento.evaluado
+                            _evaluacionFecha.value =
+                                elemento.fechaEvaluado?.let { convertirFecha(it) }.toString()
+
+                            Log.d("date", _evaluacionFecha.value)
                             _comentario.value = elemento.comentario ?: ""
 
                             val saberesCompletados = currentSaberes.filter { it.completado }.map { it.id }.toSet()
@@ -180,16 +184,11 @@ class ElementoDetailsViewModel
             }
 
             return currentRecuperatorios.any { current ->
-                if (current.id != 0) {
-                    val original = originalRecuperatorios.find { it.id == current.id }
-                    original != null &&
-                        (
-                            original.completado != current.completado ||
-                                original.fechaEvaluado != current.fechaEvaluado
-                        )
-                } else {
-                    false
-                }
+                current.id != 0 &&
+                    originalRecuperatorios.find { it.id == current.id }?.let { original ->
+                        original.completado != current.completado ||
+                            original.fechaEvaluado != current.fechaEvaluado
+                    } ?: false
             }
         }
 
@@ -209,12 +208,8 @@ class ElementoDetailsViewModel
                         guardarSaberesInterno()
                     }
 
-                    if (_evaluacionCompletada.value != originalEvaluacionCompletada ||
-                        _comentario.value != originalComentario
-                    ) {
-                        Log.d("ViewModel", "Guardando cambios en evaluación...")
-                        guardarEvaluacionInterno(elemento)
-                    }
+                    Log.d("ViewModel", "Guardando cambios en evaluación...")
+                    guardarEvaluacionInterno(elemento)
 
                     if (tieneRecuperatoriosPendientes()) {
                         Log.d("ViewModel", "Guardando cambios en recuperatorios...")
@@ -251,25 +246,11 @@ class ElementoDetailsViewModel
                 }
             }
 
+            // Actualizar la lista local de saberes
             currentSaberes =
                 currentSaberes.map { saber ->
                     saber.copy(completado = _saberesSeleccionados.value.contains(saber.id))
                 }
-
-            val elementoActualizado =
-                elemento.copy(
-                    saberesCompletados = _saberesSeleccionados.value.size,
-                )
-
-            when (val result = updateElemento.invoke(elementoActualizado)) {
-                is NetworkResult.Success -> {
-                    currentElemento = elementoActualizado
-                    Log.d("ViewModel", "Elemento actualizado con saberesCompletados: ${_saberesSeleccionados.value.size}")
-                }
-                is NetworkResult.Error -> {
-                    throw Exception("Error al actualizar saberesCompletados: ${result.error}")
-                }
-            }
         }
 
         @RequiresApi(Build.VERSION_CODES.O)
@@ -280,6 +261,7 @@ class ElementoDetailsViewModel
                     comentario = _comentario.value,
                     fechaEvaluado = if (_evaluacionCompletada.value) convertirFecha(_evaluacionFecha.value) else null,
                 )
+            Log.d("elem", elementoActualizado.toString())
 
             when (val result = updateElemento.invoke(elementoActualizado)) {
                 is NetworkResult.Success -> {
@@ -400,52 +382,50 @@ class ElementoDetailsViewModel
             Log.d("ViewModel", "Debería estar completado: $deberiaEstarCompletado")
             Log.d("ViewModel", "Original completado: $originalElementoCompletado")
 
-            if (deberiaEstarCompletado != elementoActual.completado) {
-                val elementoActualizado =
-                    elementoActual.copy(
-                        completado = deberiaEstarCompletado,
-                        fechaRegistro =
-                            if (deberiaEstarCompletado) {
-                                LocalDate
-                                    .now(
-                                        ZoneId.of("America/La_Paz"),
-                                    ).toString()
-                            } else {
-                                elementoActual.fechaRegistro
-                            },
-                        saberesCompletados = _saberesSeleccionados.value.size,
-                    )
+            // CORREGIDO: Siempre actualizar saberesCompletados junto con el estado de completado
+            val elementoActualizado =
+                elementoActual.copy(
+                    completado = deberiaEstarCompletado,
+                    saberesCompletados = _saberesSeleccionados.value.size, // CORREGIDO: Siempre actualizar
+                    fechaRegistro =
+                        if (deberiaEstarCompletado && !elementoActual.completado) {
+                            LocalDate
+                                .now(
+                                    ZoneId.of("America/La_Paz"),
+                                ).toString()
+                        } else {
+                            elementoActual.fechaRegistro
+                        },
+                )
 
-                when (val result = updateElemento.invoke(elementoActualizado)) {
-                    is NetworkResult.Success -> {
-                        currentElemento = elementoActualizado
+            when (val result = updateElemento.invoke(elementoActualizado)) {
+                is NetworkResult.Success -> {
+                    currentElemento = elementoActualizado
 
-                        val incrementoCompletados =
-                            when {
-                                deberiaEstarCompletado && !elementoActual.completado -> 1
-                                !deberiaEstarCompletado && elementoActual.completado -> -1
-                                else -> 0
-                            }
-
-                        if (incrementoCompletados != 0) {
-                            Log.d("ViewModel", "Actualizando elementos completados en materia: $incrementoCompletados")
-                            updateMateria.invoke(
-                                elemento.materiaId.toInt(),
-                                0,
-                                incrementoCompletados,
-                                0,
-                                0,
-                            )
+                    val incrementoCompletados =
+                        when {
+                            deberiaEstarCompletado && !elementoActual.completado -> 1
+                            !deberiaEstarCompletado && elementoActual.completado -> -1
+                            else -> 0
                         }
 
-                        Log.d("ViewModel", "Estado de completado actualizado: ${elementoActual.completado} -> $deberiaEstarCompletado")
+                    if (incrementoCompletados != 0) {
+                        Log.d("ViewModel", "Actualizando elementos completados en materia: $incrementoCompletados")
+                        updateMateria.invoke(
+                            elemento.materiaId.toInt(),
+                            0,
+                            incrementoCompletados,
+                            0,
+                            0,
+                        )
                     }
-                    is NetworkResult.Error -> {
-                        Log.w("ViewModel", "Error al actualizar estado completado (no crítico): ${result.error}")
-                    }
+
+                    Log.d("ViewModel", "Estado de completado actualizado: ${elementoActual.completado} -> $deberiaEstarCompletado")
+                    Log.d("ViewModel", "Saberes completados actualizado a: ${_saberesSeleccionados.value.size}")
                 }
-            } else {
-                Log.d("ViewModel", "No hay cambios en el estado completado")
+                is NetworkResult.Error -> {
+                    Log.w("ViewModel", "Error al actualizar estado completado (no crítico): ${result.error}")
+                }
             }
         }
 
@@ -471,25 +451,14 @@ class ElementoDetailsViewModel
             return cambios
         }
 
-        private fun getRecuperatoriosModificados(): List<Recuperatorio> {
-            val modificados = mutableListOf<Recuperatorio>()
-
-            currentRecuperatorios.forEach { current ->
-                if (current.id != 0) {
-                    val original = originalRecuperatorios.find { it.id == current.id }
-                    if (original != null &&
-                        (
-                            original.completado != current.completado ||
-                                original.fechaEvaluado != current.fechaEvaluado
-                        )
-                    ) {
-                        modificados.add(current)
-                    }
-                }
+        private fun getRecuperatoriosModificados(): List<Recuperatorio> =
+            currentRecuperatorios.filter { current ->
+                current.id != 0 &&
+                    originalRecuperatorios.find { it.id == current.id }?.let { original ->
+                        original.completado != current.completado ||
+                            original.fechaEvaluado != current.fechaEvaluado
+                    } ?: false
             }
-
-            return modificados
-        }
 
         private fun getRecuperatoriosNuevos(): List<Recuperatorio> = currentRecuperatorios.filter { it.id == 0 }
 
@@ -563,12 +532,12 @@ class ElementoDetailsViewModel
         }
 
         fun convertirFecha(fechaUI: String): String =
-            fechaUI.split("-").let { partes ->
+            fechaUI.substring(0, 10).split("-").let { partes ->
                 if (partes.size != 3) fechaUI else "${partes[2]}-${partes[1]}-${partes[0]}"
             }
 
         private fun getCurrentDate(): String {
-            val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+            val dateFormat = SimpleDateFormat("dd-MM-yy", Locale.getDefault())
             return dateFormat.format(Date())
         }
 
